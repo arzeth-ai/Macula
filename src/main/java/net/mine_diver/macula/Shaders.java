@@ -4,6 +4,7 @@ package net.mine_diver.macula;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.mine_diver.macula.option.ShaderOption;
+import net.mine_diver.macula.util.MatrixUtil;
 import net.mine_diver.macula.util.MinecraftInstance;
 import net.minecraft.block.BlockBase;
 import net.minecraft.client.Minecraft;
@@ -300,23 +301,23 @@ public class Shaders {
 
             shadowProjection = BufferUtils.createFloatBuffer(16);
             glGetFloat(GL_PROJECTION_MATRIX, shadowProjection);
-            shadowProjectionInverse = invertMat4x(shadowProjection);
+            shadowProjectionInverse = MatrixUtil.invertMat4x(shadowProjection);
 
             shadowModelView = BufferUtils.createFloatBuffer(16);
             glGetFloat(GL_MODELVIEW_MATRIX, shadowModelView);
-            shadowModelViewInverse = invertMat4x(shadowModelView);
+            shadowModelViewInverse = MatrixUtil.invertMat4x(shadowModelView);
             return;
         }
 
         previousProjection = projection;
         projection = BufferUtils.createFloatBuffer(16);
         glGetFloat(GL_PROJECTION_MATRIX, projection);
-        projectionInverse = invertMat4x(projection);
+        projectionInverse = MatrixUtil.invertMat4x(projection);
 
         previousModelView = modelView;
         modelView = BufferUtils.createFloatBuffer(16);
         glGetFloat(GL_MODELVIEW_MATRIX, modelView);
-        modelViewInverse = invertMat4x(modelView);
+        modelViewInverse = MatrixUtil.invertMat4x(modelView);
 
         previousCameraPosition[0] = cameraPosition[0];
         previousCameraPosition[1] = cameraPosition[1];
@@ -656,55 +657,8 @@ public class Shaders {
         glGetFloat(GL_MODELVIEW_MATRIX, modelView);
         float[] mv = new float[16];
         modelView.get(mv, 0, 16);
-        sunPosition = multiplyMat4xVec4(mv, new float[]{0.0F, 100.0F, 0.0F, 0.0F});
-        moonPosition = multiplyMat4xVec4(mv, new float[]{0.0F, -100.0F, 0.0F, 0.0F});
-    }
-
-    private static float[] multiplyMat4xVec4(float[] ta, float[] tb) {
-        float[] mout = new float[4];
-        mout[0] = ta[0] * tb[0] + ta[4] * tb[1] +  ta[8] * tb[2] + ta[12] * tb[3];
-        mout[1] = ta[1] * tb[0] + ta[5] * tb[1] +  ta[9] * tb[2] + ta[13] * tb[3];
-        mout[2] = ta[2] * tb[0] + ta[6] * tb[1] + ta[10] * tb[2] + ta[14] * tb[3];
-        mout[3] = ta[3] * tb[0] + ta[7] * tb[1] + ta[11] * tb[2] + ta[15] * tb[3];
-        return mout;
-    }
-
-    private static FloatBuffer invertMat4x(FloatBuffer matin) {
-        float[] m   = new float[16];
-        float[] inv = new float[16];
-        float det;
-        int i;
-
-        for (i = 0; i < 16; ++i) m[i] = matin.get(i);
-
-        inv[0]  =  m[5]*m[10]*m[15] - m[5]*m[11]*m[14] - m[9]*m[6]*m[15] + m[9]*m[7]*m[14] + m[13]*m[6]*m[11] - m[13]*m[7]*m[10];
-        inv[4]  = -m[4]*m[10]*m[15] + m[4]*m[11]*m[14] + m[8]*m[6]*m[15] - m[8]*m[7]*m[14] - m[12]*m[6]*m[11] + m[12]*m[7]*m[10];
-        inv[8]  =  m[4]*m[9]*m[15] - m[4]*m[11]*m[13] - m[8]*m[5]*m[15] + m[8]*m[7]*m[13] + m[12]*m[5]*m[11] - m[12]*m[7]*m[9];
-        inv[12] = -m[4]*m[9]*m[14] + m[4]*m[10]*m[13] + m[8]*m[5]*m[14] - m[8]*m[6]*m[13] - m[12]*m[5]*m[10] + m[12]*m[6]*m[9];
-        inv[1]  = -m[1]*m[10]*m[15] + m[1]*m[11]*m[14] + m[9]*m[2]*m[15] - m[9]*m[3]*m[14] - m[13]*m[2]*m[11] + m[13]*m[3]*m[10];
-        inv[5]  =  m[0]*m[10]*m[15] - m[0]*m[11]*m[14] - m[8]*m[2]*m[15] + m[8]*m[3]*m[14] + m[12]*m[2]*m[11] - m[12]*m[3]*m[10];
-        inv[9]  = -m[0]*m[9]*m[15] + m[0]*m[11]*m[13] + m[8]*m[1]*m[15] - m[8]*m[3]*m[13] - m[12]*m[1]*m[11] + m[12]*m[3]*m[9];
-        inv[13] =  m[0]*m[9]*m[14] - m[0]*m[10]*m[13] - m[8]*m[1]*m[14] + m[8]*m[2]*m[13] + m[12]*m[1]*m[10] - m[12]*m[2]*m[9];
-        inv[2]  =  m[1]*m[6]*m[15] - m[1]*m[7]*m[14] - m[5]*m[2]*m[15] + m[5]*m[3]*m[14] + m[13]*m[2]*m[7] - m[13]*m[3]*m[6];
-        inv[6]  = -m[0]*m[6]*m[15] + m[0]*m[7]*m[14] + m[4]*m[2]*m[15] - m[4]*m[3]*m[14] - m[12]*m[2]*m[7] + m[12]*m[3]*m[6];
-        inv[10] =  m[0]*m[5]*m[15] - m[0]*m[7]*m[13] - m[4]*m[1]*m[15] + m[4]*m[3]*m[13] + m[12]*m[1]*m[7] - m[12]*m[3]*m[5];
-        inv[14] = -m[0]*m[5]*m[14] + m[0]*m[6]*m[13] + m[4]*m[1]*m[14] - m[4]*m[2]*m[13] - m[12]*m[1]*m[6] + m[12]*m[2]*m[5];
-        inv[3]  = -m[1]*m[6]*m[11] + m[1]*m[7]*m[10] + m[5]*m[2]*m[11] - m[5]*m[3]*m[10] - m[9]*m[2]*m[7] + m[9]*m[3]*m[6];
-        inv[7]  =  m[0]*m[6]*m[11] - m[0]*m[7]*m[10] - m[4]*m[2]*m[11] + m[4]*m[3]*m[10] + m[8]*m[2]*m[7] - m[8]*m[3]*m[6];
-        inv[11] = -m[0]*m[5]*m[11] + m[0]*m[7]*m[9] + m[4]*m[1]*m[11] - m[4]*m[3]*m[9] - m[8]*m[1]*m[7] + m[8]*m[3]*m[5];
-        inv[15] =  m[0]*m[5]*m[10] - m[0]*m[6]*m[9] - m[4]*m[1]*m[10] + m[4]*m[2]*m[9] + m[8]*m[1]*m[6] - m[8]*m[2]*m[5];
-
-        det = m[0]*inv[0] + m[1]*inv[4] + m[2]*inv[8] + m[3]*inv[12];
-
-        FloatBuffer invout = BufferUtils.createFloatBuffer(16);
-
-        // no inverse :(
-        if (det == 0.0) return invout; // not actually the inverse
-
-
-        for (i = 0; i < 16; ++i) invout.put(i, inv[i] / det);
-
-        return invout;
+        sunPosition = MatrixUtil.multiplyMat4xVec4(mv, new float[]{0.0F, 100.0F, 0.0F, 0.0F});
+        moonPosition = MatrixUtil.multiplyMat4xVec4(mv, new float[]{0.0F, -100.0F, 0.0F, 0.0F});
     }
 
     private static int createVertShader(String filename) {
