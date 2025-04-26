@@ -381,15 +381,29 @@ public class Shaders {
         glActiveTexture(GL_TEXTURE0);
 
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        glBegin(GL_QUADS);
+
+        glBegin(GL_TRIANGLES);
+
+        // First triangle
         glTexCoord2f(0.0f, 0.0f);
         glVertex3f(0.0f, 0.0f, 0.0f);
+
         glTexCoord2f(1.0f, 0.0f);
         glVertex3f(1.0f, 0.0f, 0.0f);
+
         glTexCoord2f(1.0f, 1.0f);
         glVertex3f(1.0f, 1.0f, 0.0f);
+
+        // Second triangle
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex3f(1.0f, 1.0f, 0.0f);
+
         glTexCoord2f(0.0f, 1.0f);
         glVertex3f(0.0f, 1.0f, 0.0f);
+
         glEnd();
     }
 
