@@ -450,13 +450,17 @@ public class Shaders {
         useProgram(ProgramNone);
     }
 
-    public static void beginTerrain() {
-        useProgram(Shaders.ProgramTerrain);
+    private static void bindTerrainTextures() {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, MinecraftInstance.get().textureManager.getTextureId("/terrain_nh.png"));
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, MinecraftInstance.get().textureManager.getTextureId("/terrain_s.png"));
         glActiveTexture(GL_TEXTURE0);
+    }
+
+    public static void beginTerrain() {
+        useProgram(Shaders.ProgramTerrain);
+        bindTerrainTextures();
     }
 
     public static void endTerrain() {
@@ -465,11 +469,7 @@ public class Shaders {
 
     public static void beginWater() {
         useProgram(Shaders.ProgramWater);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, MinecraftInstance.get().textureManager.getTextureId("/terrain_nh.png"));
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, MinecraftInstance.get().textureManager.getTextureId("/terrain_s.png"));
-        glActiveTexture(GL_TEXTURE0);
+        bindTerrainTextures();
     }
 
     public static void endWater() {
