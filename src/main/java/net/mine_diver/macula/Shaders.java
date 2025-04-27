@@ -277,37 +277,7 @@ public class Shaders {
         double z = viewEntity.prevRenderZ + (viewEntity.z - viewEntity.prevRenderZ) * f;
 
         if (isShadowPass) {
-            glViewport(0, 0, shadowMapWidth, shadowMapHeight);
-
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-
-            // just backwards compatibility. it's only used when SHADOWFOV is set in the shaders.
-            if (shadowMapIsOrtho)
-                glOrtho(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, 0.05f,
-                        256.0f);
-            else gluPerspective(shadowMapFOV, (float) shadowMapWidth / (float) shadowMapHeight, 0.05f, 256.0f);
-
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glTranslatef(0.0f, 0.0f, -100.0f);
-            glRotatef(90.0f, 0.0f, 0.0f, -1.0f);
-            float angle = MinecraftInstance.get().level.method_198(f) * 360.0f;
-            // night time
-            // day time
-            if (angle < 90.0 || angle > 270.0) glRotatef(angle - 90.0f, -1.0f, 0.0f, 0.0f);
-            else glRotatef(angle + 90.0f, -1.0f, 0.0f, 0.0f);
-            // reduces jitter
-            if (shadowMapIsOrtho)
-                glTranslatef((float) x % 10.0f - 5.0f, (float) y % 10.0f - 5.0f, (float) z % 10.0f - 5.0f);
-
-            shadowProjection = BufferUtils.createFloatBuffer(16);
-            glGetFloat(GL_PROJECTION_MATRIX, shadowProjection);
-            shadowProjectionInverse = MatrixUtil.invertMat4x(shadowProjection);
-
-            shadowModelView = BufferUtils.createFloatBuffer(16);
-            glGetFloat(GL_MODELVIEW_MATRIX, shadowModelView);
-            shadowModelViewInverse = MatrixUtil.invertMat4x(shadowModelView);
+            setupShadowViewportAndMatrices(f, (float) x, (float) y, (float) z);
             return;
         }
 
@@ -328,6 +298,41 @@ public class Shaders {
         cameraPosition[0] = x;
         cameraPosition[1] = y;
         cameraPosition[2] = z;
+    }
+
+    private static void setupShadowViewportAndMatrices(float f, float x, float y, float z) {
+        glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        // just backwards compatibility. it's only used when SHADOWFOV is set in the shaders.
+        if (shadowMapIsOrtho) {
+            glOrtho(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, 0.05f, 256.0f);
+        } else {
+            gluPerspective(shadowMapFOV, (float) shadowMapWidth / (float) shadowMapHeight, 0.05f, 256.0f);
+        }
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslatef(0.0f, 0.0f, -100.0f);
+        glRotatef(90.0f, 0.0f, 0.0f, -1.0f);
+        float angle = MinecraftInstance.get().level.method_198(f) * 360.0f;
+        // night time
+        // day time
+        if (angle < 90.0 || angle > 270.0) glRotatef(angle - 90.0f, -1.0f, 0.0f, 0.0f);
+        else glRotatef(angle + 90.0f, -1.0f, 0.0f, 0.0f);
+        // reduces jitter
+        if (shadowMapIsOrtho)
+            glTranslatef(x % 10.0f - 5.0f, y % 10.0f - 5.0f, z % 10.0f - 5.0f);
+
+        shadowProjection = BufferUtils.createFloatBuffer(16);
+        glGetFloat(GL_PROJECTION_MATRIX, shadowProjection);
+        shadowProjectionInverse = MatrixUtil.invertMat4x(shadowProjection);
+
+        shadowModelView = BufferUtils.createFloatBuffer(16);
+        glGetFloat(GL_MODELVIEW_MATRIX, shadowModelView);
+        shadowModelViewInverse = MatrixUtil.invertMat4x(shadowModelView);
     }
 
     public static void beginRender(Minecraft minecraft, float f, long l) {
