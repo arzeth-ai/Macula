@@ -51,15 +51,15 @@ public class Shaders {
 
     public static int entityAttrib = -1;
 
-    private static FloatBuffer previousProjection = null;
+    private static final FloatBuffer previousProjection = BufferUtils.createFloatBuffer(16);;
 
-    private static FloatBuffer projection = null;
-    private static FloatBuffer projectionInverse = null;
+    private static final FloatBuffer projection = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer projectionInverse = BufferUtils.createFloatBuffer(16);;
 
-    private static FloatBuffer previousModelView = null;
+    private static final FloatBuffer previousModelView = BufferUtils.createFloatBuffer(16);;
 
-    private static FloatBuffer modelView = null;
-    private static FloatBuffer modelViewInverse = null;
+    private static final FloatBuffer modelView = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer modelViewInverse = BufferUtils.createFloatBuffer(16);;
 
     private static final double[] previousCameraPosition = new double[3];
     private static final double[] cameraPosition = new double[3];
@@ -82,11 +82,11 @@ public class Shaders {
     private static int sfbDepthTexture = 0;
     private static int sfbDepthBuffer = 0;
 
-    private static FloatBuffer shadowProjection = null;
-    private static FloatBuffer shadowProjectionInverse = null;
+    private static final FloatBuffer shadowProjection = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer shadowProjectionInverse = BufferUtils.createFloatBuffer(16);;
 
-    private static FloatBuffer shadowModelView = null;
-    private static FloatBuffer shadowModelViewInverse = null;
+    private static final FloatBuffer shadowModelView = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer shadowModelViewInverse = BufferUtils.createFloatBuffer(16);;
 
     // Color attachment stuff
 
@@ -175,6 +175,14 @@ public class Shaders {
 
     public static void init() {
         if (!(shaderPackLoaded = !currentShaderName.equals("OFF"))) return;
+
+        BufferUtils.zeroBuffer(projection);
+        BufferUtils.zeroBuffer(previousProjection);
+        BufferUtils.zeroBuffer(modelView);
+        BufferUtils.zeroBuffer(previousModelView);
+        BufferUtils.zeroBuffer(shadowProjection);
+        BufferUtils.zeroBuffer(shadowModelView);
+
         int maxDrawBuffers = glGetInteger(GL_MAX_DRAW_BUFFERS);
 
         System.out.println("GL_MAX_DRAW_BUFFERS = " + maxDrawBuffers);
@@ -281,15 +289,25 @@ public class Shaders {
             return;
         }
 
-        previousProjection = projection;
-        projection = BufferUtils.createFloatBuffer(16);
-        glGetFloat(GL_PROJECTION_MATRIX, projection);
-        projectionInverse = MatrixUtil.invertMat4x(projection);
+        previousProjection.position(0);
+        previousProjection.put(projection);
+        previousProjection.rewind();
 
-        previousModelView = modelView;
-        modelView = BufferUtils.createFloatBuffer(16);
+        projection.position(0);
+        glGetFloat(GL_PROJECTION_MATRIX, projection);
+        projection.rewind();
+
+        MatrixUtil.invertMat4x(projection, projectionInverse);
+
+        previousModelView.position(0);
+        previousModelView.put(modelView);
+        previousModelView.rewind();
+
+        modelView.position(0);
         glGetFloat(GL_MODELVIEW_MATRIX, modelView);
-        modelViewInverse = MatrixUtil.invertMat4x(modelView);
+        modelView.rewind();
+
+        MatrixUtil.invertMat4x(modelView, modelViewInverse);
 
         previousCameraPosition[0] = cameraPosition[0];
         previousCameraPosition[1] = cameraPosition[1];
@@ -326,13 +344,18 @@ public class Shaders {
         if (shadowMapIsOrtho)
             glTranslatef(x % 10.0f - 5.0f, y % 10.0f - 5.0f, z % 10.0f - 5.0f);
 
-        shadowProjection = BufferUtils.createFloatBuffer(16);
-        glGetFloat(GL_PROJECTION_MATRIX, shadowProjection);
-        shadowProjectionInverse = MatrixUtil.invertMat4x(shadowProjection);
 
-        shadowModelView = BufferUtils.createFloatBuffer(16);
+        shadowProjection.position(0);
+        glGetFloat(GL_PROJECTION_MATRIX, shadowProjection);
+        shadowProjection.rewind();
+
+        MatrixUtil.invertMat4x(shadowProjection, shadowProjectionInverse);
+
+        shadowModelView.position(0);
         glGetFloat(GL_MODELVIEW_MATRIX, shadowModelView);
-        shadowModelViewInverse = MatrixUtil.invertMat4x(shadowModelView);
+        shadowModelView.rewind();
+
+        MatrixUtil.invertMat4x(shadowModelView, shadowModelViewInverse);
     }
 
     public static void beginRender(Minecraft minecraft, float f, long l) {

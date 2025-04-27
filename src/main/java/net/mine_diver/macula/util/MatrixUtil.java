@@ -25,7 +25,7 @@ public class MatrixUtil {
      * | Div   |         1 |       16 |      94%  |
      * | Total |       152 |      303 |      50%  |
      */
-    public static FloatBuffer invertMat4x(FloatBuffer matrixBuffer) {
+    public static void invertMat4x(FloatBuffer matrixBuffer, FloatBuffer inverse) {
         float[] matrix = new float[16];
         matrixBuffer.get(0, matrix);
 
@@ -47,11 +47,11 @@ public class MatrixUtil {
 
         // Handle non-invertible matrix
         if (det == 0.0f) {
-            return BufferUtils.createFloatBuffer(16); // Return zero matrix
+            BufferUtils.zeroBuffer(inverse); // Return zero matrix
+            return;
         }
 
         float invDet = 1.0f / det;
-        FloatBuffer inverse = BufferUtils.createFloatBuffer(16);
 
         inverse.put(0, ( matrix[5] * c5 - matrix[6] * c4 + matrix[7] * c3) * invDet);
         inverse.put(1, (-matrix[1] * c5 + matrix[2] * c4 - matrix[3] * c3) * invDet);
@@ -72,7 +72,5 @@ public class MatrixUtil {
         inverse.put(13, ( matrix[0] * c3 - matrix[1] * c1 + matrix[2] * c0) * invDet);
         inverse.put(14, (-matrix[12] * s3 + matrix[13] * s1 - matrix[14] * s0) * invDet);
         inverse.put(15, ( matrix[8] * s3 - matrix[9] * s1 + matrix[10] * s0) * invDet);
-
-        return inverse;
     }
 }
