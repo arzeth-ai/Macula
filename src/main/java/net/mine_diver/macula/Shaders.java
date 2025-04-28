@@ -168,7 +168,7 @@ public class Shaders {
     }
 
     public static void init() {
-        if (!(shaderPackLoaded = !ShaderConfig.currentShaderName.equals("OFF"))) return;
+        if (!(shaderPackLoaded = !ShaderPack.currentShaderName.equals("OFF"))) return;
 
         BufferUtils.zeroBuffer(projection);
         BufferUtils.zeroBuffer(previousProjection);
@@ -183,9 +183,9 @@ public class Shaders {
 
         colorAttachments = 4;
 
-        if (!ShaderConfig.currentShaderName.equals("(internal)")) {
+        if (!ShaderPack.currentShaderName.equals("(internal)")) {
             boolean containsFolder;
-            try (ZipFile zipFile = new ZipFile(new File(ShaderConfig.shaderPacksDir, ShaderConfig.currentShaderName))) {
+            try (ZipFile zipFile = new ZipFile(new File(ShaderPack.shaderPacksDir, ShaderPack.currentShaderName))) {
                 ZipEntry zipEntry = zipFile.getEntry("shaders");
                 containsFolder = zipEntry != null && zipEntry.isDirectory();
             } catch (IOException e) {
@@ -660,7 +660,7 @@ public class Shaders {
         StringBuilder vertexCode = new StringBuilder();
         String line;
 
-        try (ZipFile zipFile = new ZipFile(new File(ShaderConfig.shaderPacksDir, ShaderConfig.currentShaderName))) {
+        try (ZipFile zipFile = new ZipFile(new File(ShaderPack.shaderPacksDir, ShaderPack.currentShaderName))) {
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));
@@ -695,7 +695,7 @@ public class Shaders {
         StringBuilder fragCode = new StringBuilder();
         String line;
 
-        try (ZipFile zipFile = new ZipFile(new File(ShaderConfig.shaderPacksDir, ShaderConfig.currentShaderName))) {
+        try (ZipFile zipFile = new ZipFile(new File(ShaderPack.shaderPacksDir, ShaderPack.currentShaderName))) {
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));
