@@ -1,5 +1,6 @@
 package net.mine_diver.macula.gui;
 
+import net.mine_diver.macula.ShaderConfig;
 import net.mine_diver.macula.Shaders;
 import net.mine_diver.macula.option.ShaderOption;
 import net.minecraft.client.Minecraft;
@@ -121,21 +122,21 @@ public class ShadersScreen extends ScreenBase {
         if (button instanceof ShaderOptionButton sob) {
             switch (sob.getEnumShaderOption()) {
                 case SHADOW_RES_MUL -> {
-                    Shaders.configShadowResMul = this.getNextValue(Shaders.configShadowResMul, QUALITY_MULTIPLIERS, QUALITY_MULTIPLIER_DEFAULT, !rightClick, Keyboard.isKeyDown(Keyboard.KEY_LSHIFT));
-                    Shaders.loadShaderPack();
+                    ShaderConfig.configShadowResMul = this.getNextValue(ShaderConfig.configShadowResMul, QUALITY_MULTIPLIERS, QUALITY_MULTIPLIER_DEFAULT, !rightClick, Keyboard.isKeyDown(Keyboard.KEY_LSHIFT));
+                    ShaderConfig.loadShaderPack();
                 }
             }
             sob.updateButtonText();
         }
         if (button.id == SHADERS_FOLDER_BUTTON_ID) {
             try {
-                Desktop.getDesktop().open(Shaders.shaderPacksDir);
+                Desktop.getDesktop().open(ShaderConfig.shaderPacksDir);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
         if (button.id == DONE_BUTTON_ID) {
-            Shaders.storeConfig();
+            ShaderConfig.storeConfig();
             minecraft.openScreen(parent);
         }
     }

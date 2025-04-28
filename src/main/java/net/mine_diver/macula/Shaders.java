@@ -2,8 +2,6 @@
 
 package net.mine_diver.macula;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.mine_diver.macula.option.ShaderOption;
 import net.mine_diver.macula.util.MatrixUtil;
 import net.mine_diver.macula.util.MinecraftInstance;
 import net.minecraft.block.BlockBase;
@@ -17,9 +15,6 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -35,6 +30,14 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.util.glu.GLU.gluPerspective;
 
 public class Shaders {
+    public static boolean isIsInitialized() {
+        return isInitialized;
+    }
+
+    public static void setIsInitialized(boolean isInitialized) {
+        Shaders.isInitialized = isInitialized;
+    }
+
     private static boolean isInitialized = false;
 
     private static int renderWidth = 0;
@@ -146,8 +149,6 @@ public class Shaders {
 
     // shaderpack fields
 
-    public static final File shaderPacksDir = FabricLoader.getInstance().getGameDir().resolve("shaderpacks").toFile();
-    public static String currentShaderName = "OFF";
     public static boolean shaderPackLoaded = false;
 
     // debug info
@@ -156,25 +157,18 @@ public class Shaders {
     public static final String glVendorString = GL11.glGetString(GL11.GL_VENDOR);
     public static final String glRendererString = GL11.glGetString(GL11.GL_RENDERER);
 
-    // config stuff
-    public static final File
-            configDir = FabricLoader.getInstance().getConfigDir().resolve("macula").toFile(),
-            shaderConfigFile = new File(configDir, "shaders.properties");
-    public static final Properties shadersConfig = new Properties();
-    public static float configShadowResMul = 1;
-
     static {
-        if (!configDir.exists())
-            if (!configDir.mkdirs())
+        if (!ShaderConfig.configDir.exists())
+            if (!ShaderConfig.configDir.mkdirs())
                 throw new RuntimeException();
-        loadConfig();
+        ShaderConfig.loadConfig();
     }
 
     private Shaders() {
     }
 
     public static void init() {
-        if (!(shaderPackLoaded = !currentShaderName.equals("OFF"))) return;
+        if (!(shaderPackLoaded = !ShaderConfig.currentShaderName.equals("OFF"))) return;
 
         BufferUtils.zeroBuffer(projection);
         BufferUtils.zeroBuffer(previousProjection);
@@ -189,9 +183,9 @@ public class Shaders {
 
         colorAttachments = 4;
 
-        if (!currentShaderName.equals("(internal)")) {
+        if (!ShaderConfig.currentShaderName.equals("(internal)")) {
             boolean containsFolder;
-            try (ZipFile zipFile = new ZipFile(new File(shaderPacksDir, currentShaderName))) {
+            try (ZipFile zipFile = new ZipFile(new File(ShaderConfig.shaderPacksDir, ShaderConfig.currentShaderName))) {
                 ZipEntry zipEntry = zipFile.getEntry("shaders");
                 containsFolder = zipEntry != null && zipEntry.isDirectory();
             } catch (IOException e) {
@@ -666,7 +660,7 @@ public class Shaders {
         StringBuilder vertexCode = new StringBuilder();
         String line;
 
-        try (ZipFile zipFile = new ZipFile(new File(shaderPacksDir, currentShaderName))) {
+        try (ZipFile zipFile = new ZipFile(new File(ShaderConfig.shaderPacksDir, ShaderConfig.currentShaderName))) {
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));
@@ -701,7 +695,7 @@ public class Shaders {
         StringBuilder fragCode = new StringBuilder();
         String line;
 
-        try (ZipFile zipFile = new ZipFile(new File(shaderPacksDir, currentShaderName))) {
+        try (ZipFile zipFile = new ZipFile(new File(ShaderConfig.shaderPacksDir, ShaderConfig.currentShaderName))) {
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));
@@ -717,7 +711,7 @@ public class Shaders {
                         colorAttachments = 8;
                     } else if (line.matches("/\\* SHADOWRES:[0-9]+ \\*/.*")) {
                         String[] parts = line.split("([: ])", 4);
-                        shadowMapWidth = shadowMapHeight = Math.round(Integer.parseInt(parts[2]) * configShadowResMul);
+                        shadowMapWidth = shadowMapHeight = Math.round(Integer.parseInt(parts[2]) * ShaderConfig.configShadowResMul);
                         System.out.println("Shadow map resolution: " + shadowMapWidth);
                     } else if (line.matches("/\\* SHADOWFOV:[0-9.]+ \\*/.*")) {
                         String[] parts = line.split("([: ])", 4);
@@ -871,114 +865,4 @@ public class Shaders {
 
     // shaderpacks
 
-    public static List<String> listOfShaders() {
-        List<String> folderShaders = new ArrayList<>();
-        List<String> zipShaders = new ArrayList<>();
-
-        try {
-            if (!shaderPacksDir.exists()) //noinspection ResultOfMethodCallIgnored
-                shaderPacksDir.mkdir();
-
-            File[] afile = shaderPacksDir.listFiles();
-
-            assert afile != null;
-            for (File file1 : afile) {
-                String s = file1.getName();
-
-                if (file1.isDirectory()) {
-                    if (!s.equals("debug")) {
-                        File file2 = new File(file1, "shaders");
-
-                        if (file2.exists() && file2.isDirectory()) folderShaders.add(s);
-                    }
-                } else if (file1.isFile() && s.toLowerCase().endsWith(".zip")) zipShaders.add(s);
-            }
-        } catch (Exception ignored) {
-        }
-
-        folderShaders.sort(String.CASE_INSENSITIVE_ORDER);
-        zipShaders.sort(String.CASE_INSENSITIVE_ORDER);
-        ArrayList<String> arraylist2 = new ArrayList<>();
-        arraylist2.add("OFF");
-        arraylist2.add("(internal)");
-        arraylist2.addAll(folderShaders);
-        arraylist2.addAll(zipShaders);
-        return arraylist2;
-    }
-
-    public static void loadConfig() {
-        try {
-            if (!shaderPacksDir.exists()) shaderPacksDir.mkdir();
-        } catch (Exception ignored) {
-        }
-
-        shadersConfig.setProperty(ShaderOption.SHADER_PACK.getPropertyKey(), "");
-
-        if (shaderConfigFile.exists())
-            try (FileReader filereader = new FileReader(shaderConfigFile)) {
-                shadersConfig.load(filereader);
-            } catch (Exception ignored) {
-            }
-
-        if (!shaderConfigFile.exists()) try {
-            storeConfig();
-        } catch (Exception ignored) {
-        }
-
-        for (ShaderOption option : ShaderOption.values())
-            setEnumShaderOption(option, shadersConfig.getProperty(option.getPropertyKey(), option.getValueDefault()));
-
-//        loadShaderPack();
-    }
-
-    private static void setEnumShaderOption(ShaderOption eso, String str) {
-        if (str == null) str = eso.getValueDefault();
-
-        switch (eso) {
-            case SHADOW_RES_MUL -> {
-                try {
-                    configShadowResMul = Float.parseFloat(str);
-                } catch (NumberFormatException e) {
-                    configShadowResMul = 1;
-                }
-            }
-            case SHADER_PACK -> currentShaderName = str;
-            default -> throw new IllegalArgumentException("Unknown option: " + eso);
-        }
-    }
-
-    public static void storeConfig() {
-
-        for (ShaderOption enumshaderoption : ShaderOption.values())
-            shadersConfig.setProperty(enumshaderoption.getPropertyKey(), getEnumShaderOption(enumshaderoption));
-
-        try (FileWriter filewriter = new FileWriter(shaderConfigFile)) {
-            shadersConfig.store(filewriter, null);
-        } catch (Exception ignored) {
-        }
-    }
-
-    public static String getEnumShaderOption(ShaderOption eso) {
-        return switch (eso) {
-            case SHADOW_RES_MUL -> Float.toString(configShadowResMul);
-            case SHADER_PACK -> currentShaderName;
-        };
-    }
-
-    public static void setShaderPack(String shaderPack) {
-        if (null != MinecraftInstance.get()) {
-            if (null != MinecraftInstance.get().player) {
-                currentShaderName = shaderPack;
-                shadersConfig.setProperty(ShaderOption.SHADER_PACK.getPropertyKey(), shaderPack);
-                loadShaderPack();
-            }
-        }
-    }
-
-    public static void loadShaderPack() {
-        destroy();
-        isInitialized = false;
-        init();
-        MinecraftInstance.get().worldRenderer.method_1537();
-    }
 }

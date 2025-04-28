@@ -1,6 +1,6 @@
 package net.mine_diver.macula.gui;
 
-import net.mine_diver.macula.Shaders;
+import net.mine_diver.macula.ShaderConfig;
 import net.mine_diver.macula.mixin.ScrollableBaseAccessor;
 import net.minecraft.client.gui.widgets.ScrollableBase;
 import net.minecraft.client.render.Tessellator;
@@ -21,12 +21,12 @@ class ScrollableShaders extends ScrollableBase {
     }
 
     public void updateList() {
-        this.shaderslist = Shaders.listOfShaders();
+        this.shaderslist = ShaderConfig.getShaderPackList();
         this.selectedIndex = 0;
         int i = 0;
 
         for (int j = this.shaderslist.size(); i < j; ++i) {
-            if (this.shaderslist.get(i).equals(Shaders.currentShaderName)) {
+            if (this.shaderslist.get(i).equals(ShaderConfig.currentShaderName)) {
                 this.selectedIndex = i;
                 break;
             }
@@ -47,7 +47,7 @@ class ScrollableShaders extends ScrollableBase {
     private void selectIndex(int index) {
         this.selectedIndex = index;
         this.lastClickedCached = this.lastClicked;
-        Shaders.setShaderPack(this.shaderslist.get(index));
+        ShaderConfig.setShaderPack(this.shaderslist.get(index));
         shadersGui.updateButtons();
     }
 

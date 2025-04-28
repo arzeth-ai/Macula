@@ -1,6 +1,6 @@
 package net.mine_diver.macula.gui;
 
-import net.mine_diver.macula.Shaders;
+import net.mine_diver.macula.ShaderConfig;
 import net.mine_diver.macula.option.ShaderOption;
 import net.minecraft.client.gui.widgets.Button;
 import net.minecraft.client.resource.language.I18n;
@@ -20,7 +20,7 @@ public class ShaderOptionButton extends Button {
     private static String getButtonText(final ShaderOption eso) {
         final String nameText = I18n.translate(eso.getResourceKey()) + ": ";
         return switch (eso) {
-            case SHADOW_RES_MUL -> nameText + ShadersScreen.toStringQuality(Shaders.configShadowResMul);
+            case SHADOW_RES_MUL -> nameText + ShadersScreen.toStringQuality(ShaderConfig.configShadowResMul);
             default -> throw new IllegalStateException("Unexpected value: " + eso);
         };
     }
