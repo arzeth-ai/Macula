@@ -131,7 +131,7 @@ public class ShadersScreen extends ScreenBase {
         }
         if (button.id == SHADERS_FOLDER_BUTTON_ID) {
             try {
-                Desktop.getDesktop().open(ShaderPack.shaderPacksDir);
+                Desktop.getDesktop().open(ShaderPack.SHADERPACK_DIRECTORY);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

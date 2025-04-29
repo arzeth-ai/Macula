@@ -3,57 +3,61 @@ package net.mine_diver.macula;
 import net.fabricmc.loader.api.FabricLoader;
 import net.mine_diver.macula.option.ShaderOption;
 import net.mine_diver.macula.util.MinecraftInstance;
+import net.minecraft.client.Minecraft;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.zip.ZipFile;
 
 public class ShaderPack {
-    public static final File shaderPacksDir = FabricLoader.getInstance().getGameDir().resolve("shaderpacks").toFile();
-    public static String currentShaderName = "OFF";
+    public static final File SHADERPACK_DIRECTORY = FabricLoader.getInstance().getGameDir().resolve(
+            "shaderpacks").toFile();
+
+    public static final String SHADER_DISABLED = "OFF";
+    public static final String BUILT_IN_SHADER = "(internal)";
+
+    public static String currentShaderName = SHADER_DISABLED;
 
     public static List<String> getShaderPackList() {
-        List<String> folderShaders = new ArrayList<String>();
-        List<String> zipShaders = new ArrayList<String>();
+        ArrayList<String> shaderPackList = new ArrayList<>();
+        shaderPackList.add(SHADER_DISABLED);
+        shaderPackList.add(BUILT_IN_SHADER);
 
-        try {
-            if (!shaderPacksDir.exists()) //noinspection ResultOfMethodCallIgnored
-                shaderPacksDir.mkdir();
-
-            File[] afile = shaderPacksDir.listFiles();
-
-            assert afile != null;
-            for (File file1 : afile) {
-                String s = file1.getName();
-
-                if (file1.isDirectory()) {
-                    if (!s.equals("debug")) {
-                        File file2 = new File(file1, "shaders");
-
-                        if (file2.exists() && file2.isDirectory()) folderShaders.add(s);
-                    }
-                } else if (file1.isFile() && s.toLowerCase().endsWith(".zip")) zipShaders.add(s);
-            }
-        } catch (Exception ignored) {
+        if (!SHADERPACK_DIRECTORY.exists() && !SHADERPACK_DIRECTORY.mkdir()) {
+            throw new RuntimeException("Error creating the directory: " + SHADERPACK_DIRECTORY.getName());
         }
 
-        folderShaders.sort(String.CASE_INSENSITIVE_ORDER);
-        zipShaders.sort(String.CASE_INSENSITIVE_ORDER);
-        ArrayList<String> arraylist2 = new ArrayList<String>();
-        arraylist2.add("OFF");
-        arraylist2.add("(internal)");
-        arraylist2.addAll(folderShaders);
-        arraylist2.addAll(zipShaders);
-        return arraylist2;
+        File[] files = SHADERPACK_DIRECTORY.listFiles();
+        if (files == null) return shaderPackList;
+
+        List<String> packs = new ArrayList<>();
+        for (File file : files) {
+            String fileName = file.getName();
+
+            if (file.isDirectory() && !fileName.equals("debug")) {
+                File[] children = file.listFiles();
+                if (children != null && children.length > 0) {
+                    packs.add(fileName);
+                }
+            } else if (file.isFile() && fileName.toLowerCase(Locale.ENGLISH).endsWith(".zip")) {
+                packs.add(fileName);
+            }
+        }
+
+        packs.sort(String.CASE_INSENSITIVE_ORDER);
+        shaderPackList.addAll(packs);
+        return shaderPackList;
     }
 
     public static void setShaderPack(String shaderPack) {
-        if (null != MinecraftInstance.get()) {
-            if (null != MinecraftInstance.get().player) {
-                currentShaderName = shaderPack;
-                ShaderConfig.shadersConfig.setProperty(ShaderOption.SHADER_PACK.getPropertyKey(), shaderPack);
-                loadShaderPack();
-            }
+        Minecraft mcInstance = MinecraftInstance.get();
+        if (mcInstance != null && mcInstance.player != null) {
+            currentShaderName = shaderPack;
+            ShaderConfig.shadersConfig.setProperty(ShaderOption.SHADER_PACK.getPropertyKey(), shaderPack);
+            loadShaderPack();
         }
     }
 
@@ -62,5 +66,11 @@ public class ShaderPack {
         Shaders.setIsInitialized(false);
         Shaders.init();
         MinecraftInstance.get().worldRenderer.method_1537();
+    }
+
+    public static ZipFile createZipFile() throws IOException {
+        return new ZipFile(
+                new File(ShaderPack.SHADERPACK_DIRECTORY, ShaderPack.currentShaderName)
+        );
     }
 }

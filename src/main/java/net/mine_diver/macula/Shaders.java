@@ -54,15 +54,15 @@ public class Shaders {
 
     public static int entityAttrib = -1;
 
-    private static final FloatBuffer previousProjection = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer previousProjection = BufferUtils.createFloatBuffer(16);
 
-    private static final FloatBuffer projection = BufferUtils.createFloatBuffer(16);;
-    private static final FloatBuffer projectionInverse = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer projection = BufferUtils.createFloatBuffer(16);
+    private static final FloatBuffer projectionInverse = BufferUtils.createFloatBuffer(16);
 
-    private static final FloatBuffer previousModelView = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer previousModelView = BufferUtils.createFloatBuffer(16);
 
-    private static final FloatBuffer modelView = BufferUtils.createFloatBuffer(16);;
-    private static final FloatBuffer modelViewInverse = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer modelView = BufferUtils.createFloatBuffer(16);
+    private static final FloatBuffer modelViewInverse = BufferUtils.createFloatBuffer(16);
 
     private static final double[] previousCameraPosition = new double[3];
     private static final double[] cameraPosition = new double[3];
@@ -85,11 +85,11 @@ public class Shaders {
     private static int sfbDepthTexture = 0;
     private static int sfbDepthBuffer = 0;
 
-    private static final FloatBuffer shadowProjection = BufferUtils.createFloatBuffer(16);;
-    private static final FloatBuffer shadowProjectionInverse = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer shadowProjection = BufferUtils.createFloatBuffer(16);
+    private static final FloatBuffer shadowProjectionInverse = BufferUtils.createFloatBuffer(16);
 
-    private static final FloatBuffer shadowModelView = BufferUtils.createFloatBuffer(16);;
-    private static final FloatBuffer shadowModelViewInverse = BufferUtils.createFloatBuffer(16);;
+    private static final FloatBuffer shadowModelView = BufferUtils.createFloatBuffer(16);
+    private static final FloatBuffer shadowModelViewInverse = BufferUtils.createFloatBuffer(16);
 
     // Color attachment stuff
 
@@ -117,7 +117,6 @@ public class Shaders {
     public final static int ProgramWeather = 7;
     public final static int ProgramComposite = 8;
     public final static int ProgramFinal = 9;
-    public final static int ProgramCount = 10;
 
     private static final String[] programNames = new String[]{
             "",
@@ -145,6 +144,8 @@ public class Shaders {
             ProgramNone,            // final
     };
 
+    public final static int ProgramCount = programBackups.length;
+
     private static final int[] programs = new int[ProgramCount];
 
     // shaderpack fields
@@ -168,7 +169,7 @@ public class Shaders {
     }
 
     public static void init() {
-        if (!(shaderPackLoaded = !ShaderPack.currentShaderName.equals("OFF"))) return;
+        if (!(shaderPackLoaded = !ShaderPack.currentShaderName.equals(ShaderPack.SHADER_DISABLED))) return;
 
         BufferUtils.zeroBuffer(projection);
         BufferUtils.zeroBuffer(previousProjection);
@@ -183,28 +184,21 @@ public class Shaders {
 
         colorAttachments = 4;
 
-        if (!ShaderPack.currentShaderName.equals("(internal)")) {
-            boolean containsFolder;
-            try (ZipFile zipFile = new ZipFile(new File(ShaderPack.shaderPacksDir, ShaderPack.currentShaderName))) {
-                ZipEntry zipEntry = zipFile.getEntry("shaders");
-                containsFolder = zipEntry != null && zipEntry.isDirectory();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        if (!ShaderPack.currentShaderName.equals(ShaderPack.BUILT_IN_SHADER)) {
+            for (int i = 0; i < ProgramCount; i++) {
+                if (programNames[i].isEmpty()) programs[i] = 0;
+                else programs[i] = setupProgram(programNames[i] + ".vsh", programNames[i] + ".fsh");
             }
-            for (int i = 0; i < ProgramCount; ++i)
-                if (programNames[i].equals("")) programs[i] = 0;
-                else
-                    programs[i] = setupProgram((containsFolder ? "shaders/" : "") + programNames[i] + ".vsh",
-                            (containsFolder ? "shaders/" : "") + programNames[i] + ".fsh");
         }
 
         if (colorAttachments > maxDrawBuffers) System.out.println("Not enough draw buffers!");
 
-        for (int i = 0; i < ProgramCount; ++i)
+        for (int i = 0; i < ProgramCount; ++i) {
             for (int n = i; programs[i] == 0; n = programBackups[n]) {
                 if (n == programBackups[n]) break;
                 programs[i] = programs[programBackups[n]];
             }
+        }
 
         dfbDrawBuffers = BufferUtils.createIntBuffer(colorAttachments);
         for (int i = 0; i < colorAttachments; ++i) dfbDrawBuffers.put(i, GL_COLOR_ATTACHMENT0_EXT + i);
@@ -660,7 +654,7 @@ public class Shaders {
         StringBuilder vertexCode = new StringBuilder();
         String line;
 
-        try (ZipFile zipFile = new ZipFile(new File(ShaderPack.shaderPacksDir, ShaderPack.currentShaderName))) {
+        try (ZipFile zipFile = ShaderPack.createZipFile()) {
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));
@@ -695,7 +689,7 @@ public class Shaders {
         StringBuilder fragCode = new StringBuilder();
         String line;
 
-        try (ZipFile zipFile = new ZipFile(new File(ShaderPack.shaderPacksDir, ShaderPack.currentShaderName))) {
+        try (ZipFile zipFile = ShaderPack.createZipFile()) {
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));

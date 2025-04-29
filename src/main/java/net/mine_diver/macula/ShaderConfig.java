@@ -18,8 +18,8 @@ public class ShaderConfig {
 
     public static void loadConfig() {
         try {
-            if (!ShaderPack.shaderPacksDir.exists()) {
-                ShaderPack.shaderPacksDir.mkdir();
+            if (!ShaderPack.SHADERPACK_DIRECTORY.exists()) {
+                ShaderPack.SHADERPACK_DIRECTORY.mkdir();
             }
         } catch (Exception ignored) {
         }
