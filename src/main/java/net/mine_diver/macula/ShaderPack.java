@@ -57,10 +57,12 @@ public class ShaderPack {
     }
 
     public static void setShaderPack(String shaderPack) {
+        currentShaderName = shaderPack;
+        ShaderConfig.shadersConfig.setProperty(ShaderOption.SHADER_PACK.getPropertyKey(), shaderPack);
+        Shaders.setIsInitialized(false);
+
         Minecraft mcInstance = MinecraftInstance.get();
         if (mcInstance != null && mcInstance.player != null) {
-            currentShaderName = shaderPack;
-            ShaderConfig.shadersConfig.setProperty(ShaderOption.SHADER_PACK.getPropertyKey(), shaderPack);
             loadShaderPack();
         }
     }
