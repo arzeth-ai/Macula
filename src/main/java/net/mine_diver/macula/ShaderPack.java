@@ -5,11 +5,15 @@ import net.mine_diver.macula.option.ShaderOption;
 import net.mine_diver.macula.util.MinecraftInstance;
 import net.minecraft.client.Minecraft;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class ShaderPack {
@@ -21,7 +25,7 @@ public class ShaderPack {
 
     public static String currentShaderName = SHADER_DISABLED;
 
-    public static List<String> getShaderPackList() {
+    public static List<String> listShaderPack() {
         ArrayList<String> shaderPackList = new ArrayList<>();
         shaderPackList.add(SHADER_DISABLED);
         shaderPackList.add(BUILT_IN_SHADER);
@@ -68,9 +72,24 @@ public class ShaderPack {
         MinecraftInstance.get().worldRenderer.method_1537();
     }
 
-    public static ZipFile createZipFile() throws IOException {
-        return new ZipFile(
-                new File(ShaderPack.SHADERPACK_DIRECTORY, ShaderPack.currentShaderName)
-        );
+    public static BufferedReader openShaderPackFile(String filename) throws IOException {
+        final File shaderDir = new File(ShaderPack.SHADERPACK_DIRECTORY, ShaderPack.currentShaderName);
+        final IOException fileNotFoundException = new IOException("File not found: " + filename);
+
+        if (shaderDir.isDirectory()) {
+            File file = new File(shaderDir, filename);
+            if (!file.exists()) {
+                throw fileNotFoundException;
+            }
+            return new BufferedReader(new FileReader(file));
+        } else {
+            ZipFile zipFile = new ZipFile(shaderDir);
+            ZipEntry zipEntry = zipFile.getEntry(filename);
+            if (zipEntry == null) {
+                zipFile.close();
+                throw fileNotFoundException;
+            }
+            return new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipEntry)));
+        }
     }
 }

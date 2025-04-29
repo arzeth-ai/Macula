@@ -21,7 +21,7 @@ class ScrollableShaders extends ScrollableBase {
     }
 
     public void updateList() {
-        this.shaderslist = ShaderPack.getShaderPackList();
+        this.shaderslist = ShaderPack.listShaderPack();
         this.selectedIndex = 0;
         int i = 0;
 

@@ -11,12 +11,14 @@ import net.minecraft.item.ItemInstance;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import static org.lwjgl.opengl.ARBFragmentShader.GL_FRAGMENT_SHADER_ARB;
 import static org.lwjgl.opengl.ARBShaderObjects.*;
@@ -648,96 +650,76 @@ public class Shaders {
         moonPosition = MatrixUtil.multiplyMat4xVec4(mv, new float[]{0.0F, -100.0F, 0.0F, 0.0F});
     }
 
-    private static int createVertShader(String filename) {
-        int vertShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-        if (vertShader == 0) return 0;
-        StringBuilder vertexCode = new StringBuilder();
-        String line;
+    private static int createShader(int shaderType, String filename, Consumer<String> lineProcessor) {
+        int shader = glCreateShaderObjectARB(shaderType);
+        if (shader == 0) return 0;
 
-        try (ZipFile zipFile = ShaderPack.createZipFile()) {
-            BufferedReader reader;
-            try {
-                reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));
-                while ((line = reader.readLine()) != null) {
-                    vertexCode.append(line).append("\n");
-                    if (line.matches("attribute [_a-zA-Z0-9]+ mc_Entity.*")) entityAttrib = 10;
-                }
-            } catch (Exception e) {
-                System.out.println("Couldn't read " + filename + "!");
-                glDeleteObjectARB(vertShader);
-                return 0;
-            }
-
-            try {
-                reader.close();
-            } catch (Exception e) {
-                System.out.println("Couldn't close " + filename + "!");
+        StringBuilder shaderCode = new StringBuilder();
+        try (BufferedReader reader = ShaderPack.openShaderPackFile(filename)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                shaderCode.append(line).append("\n");
+                lineProcessor.accept(line);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
+            glDeleteObjectARB(shader);
+            return 0;
         }
 
-        glShaderSourceARB(vertShader, vertexCode.toString());
-        glCompileShaderARB(vertShader);
-        printLogInfo(vertShader);
-        return vertShader;
+        glShaderSourceARB(shader, shaderCode.toString());
+        glCompileShaderARB(shader);
+        printLogInfo(shader);
+        return shader;
+    }
+
+    private static final Pattern MC_ENTITY = Pattern.compile("attribute [_a-zA-Z0-9]+ mc_Entity.*");
+
+    private static void vertPattern(String line) {
+        if (MC_ENTITY.matcher(line).matches()) entityAttrib = 10;
+    }
+
+    private static int createVertShader(String filename) {
+        return createShader(GL_VERTEX_SHADER_ARB, filename, Shaders::vertPattern);
+    }
+
+    private static final Pattern PATTERN_GAUX1 = Pattern.compile("uniform [ _a-zA-Z0-9]+ gaux1;.*");
+    private static final Pattern PATTERN_GAUX2 = Pattern.compile("uniform [ _a-zA-Z0-9]+ gaux2;.*");
+    private static final Pattern PATTERN_GAUX3 = Pattern.compile("uniform [ _a-zA-Z0-9]+ gaux3;.*");
+    private static final Pattern PATTERN_SHADOW = Pattern.compile("uniform [ _a-zA-Z0-9]+ shadow;.*");
+    private static final Pattern PATTERN_SHADOWRES = Pattern.compile("/\\* SHADOWRES:([0-9]+) \\*/.*");
+    private static final Pattern PATTERN_SHADOWFOV = Pattern.compile("/\\* SHADOWFOV:([0-9.]+) \\*/.*");
+    private static final Pattern PATTERN_SHADOWHPL = Pattern.compile("/\\* SHADOWHPL:([0-9.]+) \\*/.*");
+    private static final Pattern SPLIT_PATTERN = Pattern.compile("[: ]");
+
+    private static void fragPattern(String line) {
+        if (colorAttachments < 5 && PATTERN_GAUX1.matcher(line).matches()) colorAttachments = 5;
+        else if (colorAttachments < 6 && PATTERN_GAUX2.matcher(line).matches())
+            colorAttachments = 6;
+        else if (colorAttachments < 7 && PATTERN_GAUX3.matcher(line).matches())
+            colorAttachments = 7;
+        else if (colorAttachments < 8 && PATTERN_SHADOW.matcher(line).matches()) {
+            shadowPassInterval = 1;
+            colorAttachments = 8;
+        } else if (PATTERN_SHADOWRES.matcher(line).matches()) {
+            String[] parts = SPLIT_PATTERN.split(line, 4);
+            shadowMapWidth = shadowMapHeight = Math.round(Integer.parseInt(parts[2]) * ShaderConfig.configShadowResMul);
+            System.out.println("Shadow map resolution: " + shadowMapWidth);
+        } else if (PATTERN_SHADOWFOV.matcher(line).matches()) {
+            String[] parts = SPLIT_PATTERN.split(line, 4);
+            System.out.println("Shadow map field of view: " + parts[2]);
+            shadowMapFOV = Float.parseFloat(parts[2]);
+            shadowMapIsOrtho = false;
+        } else if (PATTERN_SHADOWHPL.matcher(line).matches()) {
+            String[] parts = SPLIT_PATTERN.split(line, 4);
+            System.out.println("Shadow map half-plane: " + parts[2]);
+            shadowMapHalfPlane = Float.parseFloat(parts[2]);
+            shadowMapIsOrtho = true;
+        }
     }
 
     private static int createFragShader(String filename) {
-        int fragShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-        if (fragShader == 0) return 0;
-        StringBuilder fragCode = new StringBuilder();
-        String line;
-
-        try (ZipFile zipFile = ShaderPack.createZipFile()) {
-            BufferedReader reader;
-            try {
-                reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipFile.getEntry(filename))));
-                while ((line = reader.readLine()) != null) {
-                    fragCode.append(line).append("\n");
-                    if (colorAttachments < 5 && line.matches("uniform [ _a-zA-Z0-9]+ gaux1;.*")) colorAttachments = 5;
-                    else if (colorAttachments < 6 && line.matches("uniform [ _a-zA-Z0-9]+ gaux2;.*"))
-                        colorAttachments = 6;
-                    else if (colorAttachments < 7 && line.matches("uniform [ _a-zA-Z0-9]+ gaux3;.*"))
-                        colorAttachments = 7;
-                    else if (colorAttachments < 8 && line.matches("uniform [ _a-zA-Z0-9]+ shadow;.*")) {
-                        shadowPassInterval = 1;
-                        colorAttachments = 8;
-                    } else if (line.matches("/\\* SHADOWRES:[0-9]+ \\*/.*")) {
-                        String[] parts = line.split("([: ])", 4);
-                        shadowMapWidth = shadowMapHeight = Math.round(Integer.parseInt(parts[2]) * ShaderConfig.configShadowResMul);
-                        System.out.println("Shadow map resolution: " + shadowMapWidth);
-                    } else if (line.matches("/\\* SHADOWFOV:[0-9.]+ \\*/.*")) {
-                        String[] parts = line.split("([: ])", 4);
-                        System.out.println("Shadow map field of view: " + parts[2]);
-                        shadowMapFOV = Float.parseFloat(parts[2]);
-                        shadowMapIsOrtho = false;
-                    } else if (line.matches("/\\* SHADOWHPL:[0-9.]+ \\*/.*")) {
-                        String[] parts = line.split("([: ])", 4);
-                        System.out.println("Shadow map half-plane: " + parts[2]);
-                        shadowMapHalfPlane = Float.parseFloat(parts[2]);
-                        shadowMapIsOrtho = true;
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("Couldn't read " + filename + "!");
-                glDeleteObjectARB(fragShader);
-                return 0;
-            }
-
-            try {
-                reader.close();
-            } catch (Exception e) {
-                System.out.println("Couldn't close " + filename + "!");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        glShaderSourceARB(fragShader, fragCode.toString());
-        glCompileShaderARB(fragShader);
-        printLogInfo(fragShader);
-        return fragShader;
+        return createShader(GL_FRAGMENT_SHADER_ARB, filename, Shaders::fragPattern);
     }
 
     private static boolean printLogInfo(int obj) {
