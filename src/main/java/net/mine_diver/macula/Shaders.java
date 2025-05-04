@@ -45,8 +45,8 @@ public class Shaders {
     private static int renderWidth = 0;
     private static int renderHeight = 0;
 
-    private static float[] sunPosition = new float[3];
-    private static float[] moonPosition = new float[3];
+    private static final float[] sunPosition = new float[3];
+    private static final float[] moonPosition = new float[3];
 
     private static final float[] clearColor = new float[3];
 
@@ -65,6 +65,8 @@ public class Shaders {
 
     private static final FloatBuffer modelView = BufferUtils.createFloatBuffer(16);
     private static final FloatBuffer modelViewInverse = BufferUtils.createFloatBuffer(16);
+
+    private static final FloatBuffer modelViewCelestial = BufferUtils.createFloatBuffer(16);
 
     private static final double[] previousCameraPosition = new double[3];
     private static final double[] cameraPosition = new double[3];
@@ -160,6 +162,7 @@ public class Shaders {
         BufferUtils.zeroBuffer(previousModelView);
         BufferUtils.zeroBuffer(shadowProjection);
         BufferUtils.zeroBuffer(shadowModelView);
+        BufferUtils.zeroBuffer(modelViewCelestial);
 
         int maxDrawBuffers = glGetInteger(GL_MAX_DRAW_BUFFERS);
 
@@ -254,6 +257,17 @@ public class Shaders {
         glDrawBuffers(dfbDrawBuffers);
     }
 
+    private static void copyBuffer(FloatBuffer src, FloatBuffer dst) {
+        dst.clear();
+        dst.put(src);
+        dst.flip();
+    }
+
+    private static void getMatrixBuffer(int glMatrixType, FloatBuffer buffer) {
+        buffer.clear();
+        glGetFloat(glMatrixType, buffer);
+    }
+
     public static void setCamera(float f) {
         Living viewEntity = MinecraftInstance.get().viewEntity;
 
@@ -266,24 +280,12 @@ public class Shaders {
             return;
         }
 
-        previousProjection.position(0);
-        previousProjection.put(projection);
-        previousProjection.rewind();
-
-        projection.position(0);
-        glGetFloat(GL_PROJECTION_MATRIX, projection);
-        projection.rewind();
-
+        copyBuffer(projection, previousProjection);
+        getMatrixBuffer(GL_PROJECTION_MATRIX, projection);
         MatrixUtil.invertMat4(projection, projectionInverse);
 
-        previousModelView.position(0);
-        previousModelView.put(modelView);
-        previousModelView.rewind();
-
-        modelView.position(0);
-        glGetFloat(GL_MODELVIEW_MATRIX, modelView);
-        modelView.rewind();
-
+        copyBuffer(modelView, previousModelView);
+        getMatrixBuffer(GL_MODELVIEW_MATRIX, modelView);
         MatrixUtil.invertMat4(modelView, modelViewInverse);
 
         previousCameraPosition[0] = cameraPosition[0];
@@ -322,16 +324,10 @@ public class Shaders {
             glTranslatef(x % 10.0f - 5.0f, y % 10.0f - 5.0f, z % 10.0f - 5.0f);
 
 
-        shadowProjection.position(0);
-        glGetFloat(GL_PROJECTION_MATRIX, shadowProjection);
-        shadowProjection.rewind();
-
+        getMatrixBuffer(GL_PROJECTION_MATRIX, shadowProjection);
         MatrixUtil.invertMat4(shadowProjection, shadowProjectionInverse);
 
-        shadowModelView.position(0);
-        glGetFloat(GL_MODELVIEW_MATRIX, shadowModelView);
-        shadowModelView.rewind();
-
+        getMatrixBuffer(GL_MODELVIEW_MATRIX, shadowModelView);
         MatrixUtil.invertMat4(shadowModelView, shadowModelViewInverse);
     }
 
@@ -627,15 +623,15 @@ public class Shaders {
     }
 
     private static final float SUN_HEIGHT = 100.0F;
+
     public static void setCelestialPosition() {
         // This is called when the current matrix is the model view matrix based on the celestial angle.
         // The sun is at (0, 100, 0); the moon at (0, -100, 0).
 
-        FloatBuffer modelView = BufferUtils.createFloatBuffer(16);
-        glGetFloat(GL_MODELVIEW_MATRIX, modelView);
+        getMatrixBuffer(GL_MODELVIEW_MATRIX, modelViewCelestial);
 
         float[] matrixMV = new float[16];
-        modelView.get(matrixMV, 0, 16);
+        modelViewCelestial.get(0, matrixMV, 0, 16);
 
         // Equivalent to multiplying the matrix by (0, 100, 0, 0).
         sunPosition[0] = matrixMV[4] * SUN_HEIGHT;
