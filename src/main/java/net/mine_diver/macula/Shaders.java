@@ -12,11 +12,11 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.EnumMap;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -106,49 +106,30 @@ public class Shaders {
     private static int dfbDepthBuffer = 0;
 
     // Program stuff
+    public enum Program {
+        NONE("", null),
+        BASIC("gbuffers_basic", NONE),
+        TEXTURED("gbuffers_textured", BASIC),
+        TEXTURED_LIT("gbuffers_textured_lit", TEXTURED),
+        TERRAIN("gbuffers_terrain", TEXTURED_LIT),
+        WATER("gbuffers_water", TERRAIN),
+        HAND("gbuffers_hand", TEXTURED_LIT),
+        WEATHER("gbuffers_weather", TEXTURED_LIT),
+        COMPOSITE("composite", NONE),
+        FINAL("final", NONE);
 
-    public static int activeProgram = 0;
+        public final String fileName;
+        public final Program fallback;
 
-    public final static int ProgramNone = 0;
-    public final static int ProgramBasic = 1;
-    public final static int ProgramTextured = 2;
-    public final static int ProgramTexturedLit = 3;
-    public final static int ProgramTerrain = 4;
-    public final static int ProgramWater = 5;
-    public final static int ProgramHand = 6;
-    public final static int ProgramWeather = 7;
-    public final static int ProgramComposite = 8;
-    public final static int ProgramFinal = 9;
+        Program(String fileName, Program fallback) {
+            this.fileName = fileName;
+            this.fallback = fallback;
+        }
+    }
 
-    private static final String[] programNames = new String[]{
-            "",
-            "gbuffers_basic",
-            "gbuffers_textured",
-            "gbuffers_textured_lit",
-            "gbuffers_terrain",
-            "gbuffers_water",
-            "gbuffers_hand",
-            "gbuffers_weather",
-            "composite",
-            "final",
-    };
+    public static final EnumMap<Program, Integer> programs = new EnumMap<>(Program.class);
 
-    private static final int[] programBackups = new int[]{
-            ProgramNone,            // none
-            ProgramNone,            // basic
-            ProgramBasic,           // textured
-            ProgramTextured,        // textured/lit
-            ProgramTexturedLit,     // terrain
-            ProgramTerrain,         // water
-            ProgramTexturedLit,     // hand
-            ProgramTexturedLit,     // weather
-            ProgramNone,            // composite
-            ProgramNone,            // final
-    };
-
-    public final static int ProgramCount = programBackups.length;
-
-    private static final int[] programs = new int[ProgramCount];
+    public static Program activeProgram = Program.NONE;
 
     // shaderpack fields
 
@@ -186,20 +167,24 @@ public class Shaders {
 
         colorAttachments = 4;
 
-        if (!ShaderPack.currentShaderName.equals(ShaderPack.BUILT_IN_SHADER)) {
-            for (int i = 0; i < ProgramCount; i++) {
-                if (programNames[i].isEmpty()) programs[i] = 0;
-                else programs[i] = setupProgram(programNames[i] + ".vsh", programNames[i] + ".fsh");
+        Program[] allPrograms = Program.values();
+        for (Program program : allPrograms) {
+            if (program.fileName.isEmpty()) {
+                programs.put(program, 0);
+            } else {
+                programs.put(program, setupProgram(program.fileName + ".vsh", program.fileName + ".fsh"));
             }
         }
 
         if (colorAttachments > maxDrawBuffers) System.out.println("Not enough draw buffers!");
 
-        for (int i = 0; i < ProgramCount; ++i) {
-            for (int n = i; programs[i] == 0; n = programBackups[n]) {
-                if (n == programBackups[n]) break;
-                programs[i] = programs[programBackups[n]];
+        for (Program program : allPrograms) {
+            Program current = program;
+            while (programs.get(current) == 0) {
+                if (current.fallback == null || current == current.fallback) break;
+                current = current.fallback;
             }
+            programs.put(program, programs.get(current));
         }
 
         dfbDrawBuffers = BufferUtils.createIntBuffer(colorAttachments);
@@ -214,17 +199,19 @@ public class Shaders {
     }
 
     public static void destroy() {
-        for (int i = 0; i < ProgramCount; ++i)
-            if (programs[i] != 0) {
-                glDeleteObjectARB(programs[i]);
-                programs[i] = 0;
+        for (Program program : Program.values()) {
+            int handle = programs.get(program);
+            if (handle != 0) {
+                glDeleteObjectARB(handle);
+                programs.put(program, 0);
             }
+        }
     }
 
     public static void glEnableWrapper(int cap) {
         glEnable(cap);
         if (cap == GL_TEXTURE_2D) {
-            if (activeProgram == ProgramBasic) useProgram(ProgramTextured);
+            if (activeProgram == Program.BASIC) useProgram(Program.TEXTURED);
         } else if (cap == GL_FOG) {
             fogEnabled = true;
             setProgramUniform1i("fogMode", glGetInteger(GL_FOG_MODE));
@@ -234,7 +221,7 @@ public class Shaders {
     public static void glDisableWrapper(int cap) {
         glDisable(cap);
         if (cap == GL_TEXTURE_2D) {
-            if (activeProgram == ProgramTextured || activeProgram == ProgramTexturedLit) useProgram(ProgramBasic);
+            if (activeProgram == Program.TEXTURED || activeProgram == Program.TEXTURED_LIT) useProgram(Program.BASIC);
         } else if (cap == GL_FOG) {
             fogEnabled = false;
             setProgramUniform1i("fogMode", 0);
@@ -369,7 +356,7 @@ public class Shaders {
 
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, sfb);
 
-            useProgram(ProgramNone);
+            useProgram(Program.NONE);
 
             MinecraftInstance.get().gameRenderer.delta(f, l);
 
@@ -382,7 +369,7 @@ public class Shaders {
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, dfb);
 
-        useProgram(ProgramTextured);
+        useProgram(Program.TEXTURED);
     }
 
     private static void bindTexturesAndDrawQuad() {
@@ -444,7 +431,7 @@ public class Shaders {
 
         glDisable(GL_BLEND);
 
-        useProgram(ProgramComposite);
+        useProgram(Program.COMPOSITE);
 
         glDrawBuffers(dfbDrawBuffers);
 
@@ -454,7 +441,7 @@ public class Shaders {
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-        useProgram(ProgramFinal);
+        useProgram(Program.FINAL);
 
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -465,7 +452,7 @@ public class Shaders {
 
         glPopMatrix();
 
-        useProgram(ProgramNone);
+        useProgram(Program.NONE);
     }
 
     private static void bindTerrainTextures() {
@@ -477,45 +464,45 @@ public class Shaders {
     }
 
     public static void beginTerrain() {
-        useProgram(Shaders.ProgramTerrain);
+        useProgram(Program.TERRAIN);
         bindTerrainTextures();
     }
 
     public static void endTerrain() {
-        useProgram(ProgramTextured);
+        useProgram(Program.TEXTURED);
     }
 
     public static void beginWater() {
-        useProgram(Shaders.ProgramWater);
+        useProgram(Program.WATER);
         bindTerrainTextures();
     }
 
     public static void endWater() {
-        useProgram(ProgramTextured);
+        useProgram(Program.TEXTURED);
     }
 
     public static void beginHand() {
         glEnable(GL_BLEND);
-        useProgram(Shaders.ProgramHand);
+        useProgram(Program.HAND);
     }
 
     public static void endHand() {
         glDisable(GL_BLEND);
-        useProgram(ProgramTextured);
+        useProgram(Program.TEXTURED);
 
         if (isShadowPass) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, sfb); // was set to 0 in beginWeather()
     }
 
     public static void beginWeather() {
         glEnable(GL_BLEND);
-        useProgram(Shaders.ProgramWeather);
+        useProgram(Program.WEATHER);
 
         if (isShadowPass) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // will be set to sbf in endHand()
     }
 
     public static void endWeather() {
         glDisable(GL_BLEND);
-        useProgram(ProgramTextured);
+        useProgram(Program.TEXTURED);
     }
 
     private static void resize() {
@@ -554,26 +541,26 @@ public class Shaders {
         return program;
     }
 
-    public static void useProgram(int program) {
+    public static void useProgram(Program program) {
         if (activeProgram == program) return;
         else if (isShadowPass) {
-            activeProgram = ProgramNone;
-            glUseProgramObjectARB(programs[ProgramNone]);
+            activeProgram = Program.NONE;
+            glUseProgramObjectARB(programs.get(Program.NONE));
             return;
         }
         activeProgram = program;
-        glUseProgramObjectARB(programs[program]);
-        if (programs[program] == 0) return;
-        else if (program == ProgramTextured) setProgramUniform1i("texture", 0);
-        else if (program == ProgramTexturedLit || program == ProgramHand || program == ProgramWeather) {
+        glUseProgramObjectARB(programs.get(program));
+        if (programs.get(program) == 0) return;
+        else if (program == Program.TEXTURED) setProgramUniform1i("texture", 0);
+        else if (program == Program.TEXTURED_LIT || program == Program.HAND || program == Program.WEATHER) {
             setProgramUniform1i("texture", 0);
             setProgramUniform1i("lightmap", 1);
-        } else if (program == ProgramTerrain || program == ProgramWater) {
+        } else if (program == Program.TERRAIN || program == Program.WATER) {
             setProgramUniform1i("texture", 0);
             setProgramUniform1i("lightmap", 1);
             setProgramUniform1i("normals", 2);
             setProgramUniform1i("specular", 3);
-        } else if (program == ProgramComposite || program == ProgramFinal) {
+        } else if (program == Program.COMPOSITE || program == Program.FINAL) {
             setProgramUniform1i("gcolor", 0);
             setProgramUniform1i("gdepth", 1);
             setProgramUniform1i("gnormal", 2);
@@ -616,26 +603,26 @@ public class Shaders {
     }
 
     public static void setProgramUniform1i(String name, int x) {
-        if (activeProgram == ProgramNone) return;
-        int uniform = glGetUniformLocationARB(programs[activeProgram], name);
+        if (activeProgram == Program.NONE) return;
+        int uniform = glGetUniformLocationARB(programs.get(activeProgram), name);
         glUniform1iARB(uniform, x);
     }
 
     public static void setProgramUniform1f(String name, float x) {
-        if (activeProgram == ProgramNone) return;
-        int uniform = glGetUniformLocationARB(programs[activeProgram], name);
+        if (activeProgram == Program.NONE) return;
+        int uniform = glGetUniformLocationARB(programs.get(activeProgram), name);
         glUniform1fARB(uniform, x);
     }
 
     public static void setProgramUniform3f(String name, float x, float y, float z) {
-        if (activeProgram == ProgramNone) return;
-        int uniform = glGetUniformLocationARB(programs[activeProgram], name);
+        if (activeProgram == Program.NONE) return;
+        int uniform = glGetUniformLocationARB(programs.get(activeProgram), name);
         glUniform3fARB(uniform, x, y, z);
     }
 
     public static void setProgramUniformMatrix4ARB(String name, boolean transpose, FloatBuffer matrix) {
-        if (activeProgram == ProgramNone || matrix == null) return;
-        int uniform = glGetUniformLocation(programs[activeProgram], name);
+        if (activeProgram == Program.NONE || matrix == null) return;
+        int uniform = glGetUniformLocation(programs.get(activeProgram), name);
         glUniformMatrix4ARB(uniform, transpose, matrix);
     }
 
@@ -755,7 +742,7 @@ public class Shaders {
 
         for (int i = 0; i < colorAttachments; ++i) {
             glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, dfbRenderBuffers.get(i));
-            // depth buffer
+            // Depth buffer
             if (i == 1) glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGB32F_ARB, renderWidth, renderHeight);
             else glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, renderWidth, renderHeight);
             glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, dfbDrawBuffers.get(i), GL_RENDERBUFFER_EXT,
@@ -824,7 +811,7 @@ public class Shaders {
     private static void setupShadowRenderTexture() {
         if (shadowPassInterval <= 0) return;
 
-        // depth
+        // Depth
         glDeleteTextures(sfbDepthTexture);
         sfbDepthTexture = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, sfbDepthTexture);
@@ -838,7 +825,4 @@ public class Shaders {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT,
                 GL11.GL_FLOAT, buffer);
     }
-
-    // shaderpacks
-
 }
