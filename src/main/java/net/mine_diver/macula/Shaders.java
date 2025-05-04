@@ -32,6 +32,9 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.util.glu.GLU.gluPerspective;
 
 public class Shaders {
+
+    public static final Minecraft MINECRAFT = MinecraftInstance.get();
+
     public static boolean isIsInitialized() {
         return isInitialized;
     }
@@ -150,9 +153,6 @@ public class Shaders {
         ShaderConfig.loadConfig();
     }
 
-    private Shaders() {
-    }
-
     public static void init() {
         if (!(shaderPackLoaded = !ShaderPack.currentShaderName.equals(ShaderPack.SHADER_DISABLED))) return;
 
@@ -197,7 +197,7 @@ public class Shaders {
         dfbRenderBuffers = BufferUtils.createIntBuffer(colorAttachments);
 
         resize();
-        setupShadowMap();
+        setupShadowFrameBuffer();
         isInitialized = true;
     }
 
@@ -269,7 +269,7 @@ public class Shaders {
     }
 
     public static void setCamera(float f) {
-        Living viewEntity = MinecraftInstance.get().viewEntity;
+        Living viewEntity = MINECRAFT.viewEntity;
 
         double x = viewEntity.prevRenderX + (viewEntity.x - viewEntity.prevRenderX) * f;
         double y = viewEntity.prevRenderY + (viewEntity.y - viewEntity.prevRenderY) * f;
@@ -314,7 +314,7 @@ public class Shaders {
         glLoadIdentity();
         glTranslatef(0.0f, 0.0f, -100.0f);
         glRotatef(90.0f, 0.0f, 0.0f, -1.0f);
-        float angle = MinecraftInstance.get().level.method_198(f) * 360.0f;
+        float angle = MINECRAFT.level.method_198(f) * 360.0f;
         // night time
         // day time
         if (angle < 90.0 || angle > 270.0) glRotatef(angle - 90.0f, -1.0f, 0.0f, 0.0f);
@@ -338,14 +338,14 @@ public class Shaders {
 
         if (!isInitialized) init();
         if (!shaderPackLoaded) return;
-        if (MinecraftInstance.get().actualWidth != renderWidth || MinecraftInstance.get().actualHeight != renderHeight)
+        if (MINECRAFT.actualWidth != renderWidth || MINECRAFT.actualHeight != renderHeight)
             resize();
 
         if (shadowPassInterval > 0 && --shadowPassCounter <= 0) {
             // do shadow pass
-            boolean preShadowPassThirdPersonView = MinecraftInstance.get().options.thirdPerson;
+            boolean preShadowPassThirdPersonView = MINECRAFT.options.thirdPerson;
 
-            MinecraftInstance.get().options.thirdPerson = true;
+            MINECRAFT.options.thirdPerson = true;
 
             isShadowPass = true;
             shadowPassCounter = shadowPassInterval;
@@ -354,13 +354,13 @@ public class Shaders {
 
             useProgram(Program.NONE);
 
-            MinecraftInstance.get().gameRenderer.delta(f, l);
+            MINECRAFT.gameRenderer.delta(f, l);
 
             glFlush();
 
             isShadowPass = false;
 
-            MinecraftInstance.get().options.thirdPerson = preShadowPassThirdPersonView;
+            MINECRAFT.options.thirdPerson = preShadowPassThirdPersonView;
         }
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, dfb);
@@ -368,7 +368,7 @@ public class Shaders {
         useProgram(Program.TEXTURED);
     }
 
-    private static void bindTexturesAndDrawQuad() {
+    private static void bindTextures() {
         for (byte i = 0; i < colorAttachments; i++) {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, dfbTextures.get(i));
@@ -382,7 +382,9 @@ public class Shaders {
         glActiveTexture(GL_TEXTURE0);
 
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    }
 
+    private static void drawQuad() {
         glBegin(GL_TRIANGLES);
 
         // First triangle
@@ -431,7 +433,8 @@ public class Shaders {
 
         glDrawBuffers(dfbDrawBuffers);
 
-        bindTexturesAndDrawQuad();
+        bindTextures();
+        drawQuad();
 
         // final
 
@@ -442,20 +445,20 @@ public class Shaders {
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        bindTexturesAndDrawQuad();
+        bindTextures();
+        drawQuad();
 
         glEnable(GL_BLEND);
 
         glPopMatrix();
-
         useProgram(Program.NONE);
     }
 
     private static void bindTerrainTextures() {
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, MinecraftInstance.get().textureManager.getTextureId("/terrain_nh.png"));
+        glBindTexture(GL_TEXTURE_2D, MINECRAFT.textureManager.getTextureId("/terrain_nh.png"));
         glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, MinecraftInstance.get().textureManager.getTextureId("/terrain_s.png"));
+        glBindTexture(GL_TEXTURE_2D, MINECRAFT.textureManager.getTextureId("/terrain_s.png"));
         glActiveTexture(GL_TEXTURE0);
     }
 
@@ -502,13 +505,9 @@ public class Shaders {
     }
 
     private static void resize() {
-        renderWidth = MinecraftInstance.get().actualWidth;
-        renderHeight = MinecraftInstance.get().actualHeight;
+        renderWidth = MINECRAFT.actualWidth;
+        renderHeight = MINECRAFT.actualHeight;
         setupFrameBuffer();
-    }
-
-    private static void setupShadowMap() {
-        setupShadowFrameBuffer();
     }
 
     private static int setupProgram(String vShaderPath, String fShaderPath) {
@@ -576,18 +575,18 @@ public class Shaders {
                 setProgramUniformMatrix4ARB("shadowModelViewInverse", false, shadowModelViewInverse);
             }
         }
-        ItemInstance stack = MinecraftInstance.get().player.inventory.getHeldItem();
+        ItemInstance stack = MINECRAFT.player.inventory.getHeldItem();
         setProgramUniform1i("heldItemId", (stack == null ? -1 : stack.itemId));
         setProgramUniform1i("heldBlockLightValue",
                 (stack == null || stack.itemId >= BlockBase.BY_ID.length ? 0 : BlockBase.EMITTANCE[stack.itemId]));
         setProgramUniform1i("fogMode", (fogEnabled ? glGetInteger(GL_FOG_MODE) : 0));
         setProgramUniform1f("rainStrength", rainStrength);
-        setProgramUniform1i("worldTime", (int) (MinecraftInstance.get().level.getLevelTime() % 24000L));
+        setProgramUniform1i("worldTime", (int) (MINECRAFT.level.getLevelTime() % 24000L));
         setProgramUniform1f("aspectRatio", (float) renderWidth / (float) renderHeight);
         setProgramUniform1f("viewWidth", (float) renderWidth);
         setProgramUniform1f("viewHeight", (float) renderHeight);
         setProgramUniform1f("near", 0.05F);
-        setProgramUniform1f("far", 256 >> MinecraftInstance.get().options.viewDistance);
+        setProgramUniform1f("far", 256 >> MINECRAFT.options.viewDistance);
         setProgramUniform3f("sunPosition", sunPosition[0], sunPosition[1], sunPosition[2]);
         setProgramUniform3f("moonPosition", moonPosition[0], moonPosition[1], moonPosition[2]);
         setProgramUniform3f("previousCameraPosition", (float) previousCameraPosition[0],
@@ -598,28 +597,31 @@ public class Shaders {
         setProgramUniformMatrix4ARB("gbufferModelViewInverse", false, modelViewInverse);
     }
 
+    private static int getUniformLocation(String name) {
+        if (activeProgram == Program.NONE) {
+            return -1;
+        }
+        return glGetUniformLocationARB(programs.get(activeProgram), name);
+    }
+
     public static void setProgramUniform1i(String name, int x) {
-        if (activeProgram == Program.NONE) return;
-        int uniform = glGetUniformLocationARB(programs.get(activeProgram), name);
-        glUniform1iARB(uniform, x);
+        int uniform = getUniformLocation(name);
+        if(uniform != -1) glUniform1iARB(uniform, x);
     }
 
     public static void setProgramUniform1f(String name, float x) {
-        if (activeProgram == Program.NONE) return;
-        int uniform = glGetUniformLocationARB(programs.get(activeProgram), name);
-        glUniform1fARB(uniform, x);
+        int uniform = getUniformLocation(name);
+        if(uniform != -1) glUniform1fARB(uniform, x);
     }
 
     public static void setProgramUniform3f(String name, float x, float y, float z) {
-        if (activeProgram == Program.NONE) return;
-        int uniform = glGetUniformLocationARB(programs.get(activeProgram), name);
-        glUniform3fARB(uniform, x, y, z);
+        int uniform = getUniformLocation(name);
+        if(uniform != -1) glUniform3fARB(uniform, x, y, z);
     }
 
     public static void setProgramUniformMatrix4ARB(String name, boolean transpose, FloatBuffer matrix) {
-        if (activeProgram == Program.NONE || matrix == null) return;
-        int uniform = glGetUniformLocation(programs.get(activeProgram), name);
-        glUniformMatrix4ARB(uniform, transpose, matrix);
+        int uniform = getUniformLocation(name);
+        if(uniform != -1) glUniformMatrix4ARB(uniform, transpose, matrix);
     }
 
     private static final float SUN_HEIGHT = 100.0F;
