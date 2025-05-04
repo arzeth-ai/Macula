@@ -28,7 +28,8 @@ import static org.lwjgl.opengl.ARBVertexShader.glBindAttribLocationARB;
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.GL_MAX_DRAW_BUFFERS;
+import static org.lwjgl.opengl.GL20.glDrawBuffers;
 import static org.lwjgl.util.glu.GLU.gluPerspective;
 
 public class Shaders {
@@ -71,8 +72,8 @@ public class Shaders {
 
     private static final FloatBuffer modelViewCelestial = BufferUtils.createFloatBuffer(16);
 
-    private static final double[] previousCameraPosition = new double[3];
-    private static final double[] cameraPosition = new double[3];
+    private static final float[] previousCameraPosition = new float[3];
+    private static final float[] cameraPosition = new float[3];
 
     // Shadow stuff
 
@@ -292,9 +293,9 @@ public class Shaders {
         previousCameraPosition[1] = cameraPosition[1];
         previousCameraPosition[2] = cameraPosition[2];
 
-        cameraPosition[0] = x;
-        cameraPosition[1] = y;
-        cameraPosition[2] = z;
+        cameraPosition[0] = (float) x;
+        cameraPosition[1] = (float) y;
+        cameraPosition[2] = (float) z;
     }
 
     private static void setupShadowViewportAndMatrices(float f, float x, float y, float z) {
@@ -538,7 +539,7 @@ public class Shaders {
 
     public static void useProgram(Program program) {
         if (activeProgram == program) return;
-        else if (isShadowPass) {
+        if (isShadowPass) {
             activeProgram = Program.NONE;
             glUseProgramObjectARB(programs.get(Program.NONE));
             return;
@@ -546,35 +547,47 @@ public class Shaders {
         activeProgram = program;
         glUseProgramObjectARB(programs.get(program));
         if (programs.get(program) == 0) return;
-        else if (program == Program.TEXTURED) setProgramUniform1i("texture", 0);
-        else if (program == Program.TEXTURED_LIT || program == Program.HAND || program == Program.WEATHER) {
-            setProgramUniform1i("texture", 0);
-            setProgramUniform1i("lightmap", 1);
-        } else if (program == Program.TERRAIN || program == Program.WATER) {
-            setProgramUniform1i("texture", 0);
-            setProgramUniform1i("lightmap", 1);
-            setProgramUniform1i("normals", 2);
-            setProgramUniform1i("specular", 3);
-        } else if (program == Program.COMPOSITE || program == Program.FINAL) {
-            setProgramUniform1i("gcolor", 0);
-            setProgramUniform1i("gdepth", 1);
-            setProgramUniform1i("gnormal", 2);
-            setProgramUniform1i("composite", 3);
-            setProgramUniform1i("gaux1", 4);
-            setProgramUniform1i("gaux2", 5);
-            setProgramUniform1i("gaux3", 6);
-            setProgramUniform1i("shadow", 7);
-            setProgramUniformMatrix4ARB("gbufferPreviousProjection", false, previousProjection);
-            setProgramUniformMatrix4ARB("gbufferProjection", false, projection);
-            setProgramUniformMatrix4ARB("gbufferProjectionInverse", false, projectionInverse);
-            setProgramUniformMatrix4ARB("gbufferPreviousModelView", false, previousModelView);
-            if (shadowPassInterval > 0) {
-                setProgramUniformMatrix4ARB("shadowProjection", false, shadowProjection);
-                setProgramUniformMatrix4ARB("shadowProjectionInverse", false, shadowProjectionInverse);
-                setProgramUniformMatrix4ARB("shadowModelView", false, shadowModelView);
-                setProgramUniformMatrix4ARB("shadowModelViewInverse", false, shadowModelViewInverse);
-            }
+
+        switch (program) {
+            case TEXTURED:
+                setProgramUniform1i("texture", 0);
+                break;
+            case TEXTURED_LIT:
+            case HAND:
+            case WEATHER:
+                setProgramUniform1i("texture", 0);
+                setProgramUniform1i("lightmap", 1);
+                break;
+            case TERRAIN:
+            case WATER:
+                setProgramUniform1i("texture", 0);
+                setProgramUniform1i("lightmap", 1);
+                setProgramUniform1i("normals", 2);
+                setProgramUniform1i("specular", 3);
+                break;
+            case COMPOSITE:
+            case FINAL:
+                setProgramUniform1i("gcolor", 0);
+                setProgramUniform1i("gdepth", 1);
+                setProgramUniform1i("gnormal", 2);
+                setProgramUniform1i("composite", 3);
+                setProgramUniform1i("gaux1", 4);
+                setProgramUniform1i("gaux2", 5);
+                setProgramUniform1i("gaux3", 6);
+                setProgramUniform1i("shadow", 7);
+                setProgramUniformMatrix4("gbufferPreviousProjection", previousProjection);
+                setProgramUniformMatrix4("gbufferProjection", projection);
+                setProgramUniformMatrix4("gbufferProjectionInverse", projectionInverse);
+                setProgramUniformMatrix4("gbufferPreviousModelView", previousModelView);
+                if (shadowPassInterval > 0) {
+                    setProgramUniformMatrix4("shadowProjection", shadowProjection);
+                    setProgramUniformMatrix4("shadowProjectionInverse", shadowProjectionInverse);
+                    setProgramUniformMatrix4("shadowModelView", shadowModelView);
+                    setProgramUniformMatrix4("shadowModelViewInverse", shadowModelViewInverse);
+                }
+                break;
         }
+
         ItemInstance stack = MINECRAFT.player.inventory.getHeldItem();
         setProgramUniform1i("heldItemId", (stack == null ? -1 : stack.itemId));
         setProgramUniform1i("heldBlockLightValue",
@@ -587,44 +600,39 @@ public class Shaders {
         setProgramUniform1f("viewHeight", (float) renderHeight);
         setProgramUniform1f("near", 0.05F);
         setProgramUniform1f("far", 256 >> MINECRAFT.options.viewDistance);
-        setProgramUniform3f("sunPosition", sunPosition[0], sunPosition[1], sunPosition[2]);
-        setProgramUniform3f("moonPosition", moonPosition[0], moonPosition[1], moonPosition[2]);
-        setProgramUniform3f("previousCameraPosition", (float) previousCameraPosition[0],
-                (float) previousCameraPosition[1], (float) previousCameraPosition[2]);
-        setProgramUniform3f("cameraPosition", (float) cameraPosition[0], (float) cameraPosition[1],
-                (float) cameraPosition[2]);
-        setProgramUniformMatrix4ARB("gbufferModelView", false, modelView);
-        setProgramUniformMatrix4ARB("gbufferModelViewInverse", false, modelViewInverse);
+        setProgramUniform3f("sunPosition", sunPosition);
+        setProgramUniform3f("moonPosition", moonPosition);
+        setProgramUniform3f("previousCameraPosition", previousCameraPosition);
+        setProgramUniform3f("cameraPosition", cameraPosition);
+        setProgramUniformMatrix4("gbufferModelView", modelView);
+        setProgramUniformMatrix4("gbufferModelViewInverse", modelViewInverse);
     }
 
     private static int getUniformLocation(String name) {
-        if (activeProgram == Program.NONE) {
-            return -1;
-        }
+        // TODO: Implement uniform location caching to avoid repeated calls to glGetUniformLocation
         return glGetUniformLocationARB(programs.get(activeProgram), name);
     }
 
-    public static void setProgramUniform1i(String name, int x) {
+    public static void setProgramUniform1i(String name, int n) {
         int uniform = getUniformLocation(name);
-        if(uniform != -1) glUniform1iARB(uniform, x);
+        if (uniform != -1) glUniform1iARB(uniform, n);
     }
 
     public static void setProgramUniform1f(String name, float x) {
         int uniform = getUniformLocation(name);
-        if(uniform != -1) glUniform1fARB(uniform, x);
+        if (uniform != -1) glUniform1fARB(uniform, x);
     }
 
-    public static void setProgramUniform3f(String name, float x, float y, float z) {
+    public static void setProgramUniform3f(String name, float[] vec3) {
         int uniform = getUniformLocation(name);
-        if(uniform != -1) glUniform3fARB(uniform, x, y, z);
+        if (uniform != -1) glUniform3fARB(uniform, vec3[0], vec3[1], vec3[2]);
     }
 
-    public static void setProgramUniformMatrix4ARB(String name, boolean transpose, FloatBuffer matrix) {
+    public static void setProgramUniformMatrix4(String name, FloatBuffer mat4) {
         int uniform = getUniformLocation(name);
-        if(uniform != -1) glUniformMatrix4ARB(uniform, transpose, matrix);
+        final boolean TRANSPOSE = false;
+        if (uniform != -1) glUniformMatrix4ARB(uniform, TRANSPOSE, mat4);
     }
-
-    private static final float SUN_HEIGHT = 100.0F;
 
     public static void setCelestialPosition() {
         // This is called when the current matrix is the model view matrix based on the celestial angle.
@@ -636,6 +644,7 @@ public class Shaders {
         modelViewCelestial.get(0, matrixMV, 0, 16);
 
         // Equivalent to multiplying the matrix by (0, 100, 0, 0).
+        final float SUN_HEIGHT = 100.0F;
         sunPosition[0] = matrixMV[4] * SUN_HEIGHT;
         sunPosition[1] = matrixMV[5] * SUN_HEIGHT;
         sunPosition[2] = matrixMV[6] * SUN_HEIGHT;
