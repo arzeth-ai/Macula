@@ -5,27 +5,11 @@ import org.lwjgl.BufferUtils;
 import java.nio.FloatBuffer;
 
 public class MatrixUtil {
-    public static float[] multiplyMat4xVec4(float[] matrix, float[] vector) {
-        float[] result = new float[4];
-        result[0] = matrix[0] * vector[0] + matrix[4] * vector[1] + matrix[8] * vector[2] + matrix[12] * vector[3];
-        result[1] = matrix[1] * vector[0] + matrix[5] * vector[1] + matrix[9] * vector[2] + matrix[13] * vector[3];
-        result[2] = matrix[2] * vector[0] + matrix[6] * vector[1] + matrix[10] * vector[2] + matrix[14] * vector[3];
-        result[3] = matrix[3] * vector[0] + matrix[7] * vector[1] + matrix[11] * vector[2] + matrix[15] * vector[3];
-        return result;
-    }
-
     /**
-     * Efficient 4x4 matrix inverse
+     * Efficient 4x4 matrix inverse, ~50% fewer operations than the standard approach.
      * Based on: https://stackoverflow.com/questions/2624422/efficient-4x4-matrix-inverse-affine-transform
-     * Comparison:
-     * |       | Optimized | Original | Reduction |
-     * | Add   |        19 |       43 |      56%  |
-     * | Sub   |        38 |       48 |      21%  |
-     * | Mul   |        94 |      196 |      52%  |
-     * | Div   |         1 |       16 |      94%  |
-     * | Total |       152 |      303 |      50%  |
      */
-    public static void invertMat4x(FloatBuffer matrixBuffer, FloatBuffer inverse) {
+    public static void invertMat4(FloatBuffer matrixBuffer, FloatBuffer inverse) {
         float[] matrix = new float[16];
         matrixBuffer.get(0, matrix);
 

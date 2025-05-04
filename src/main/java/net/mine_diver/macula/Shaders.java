@@ -274,7 +274,7 @@ public class Shaders {
         glGetFloat(GL_PROJECTION_MATRIX, projection);
         projection.rewind();
 
-        MatrixUtil.invertMat4x(projection, projectionInverse);
+        MatrixUtil.invertMat4(projection, projectionInverse);
 
         previousModelView.position(0);
         previousModelView.put(modelView);
@@ -284,7 +284,7 @@ public class Shaders {
         glGetFloat(GL_MODELVIEW_MATRIX, modelView);
         modelView.rewind();
 
-        MatrixUtil.invertMat4x(modelView, modelViewInverse);
+        MatrixUtil.invertMat4(modelView, modelViewInverse);
 
         previousCameraPosition[0] = cameraPosition[0];
         previousCameraPosition[1] = cameraPosition[1];
@@ -326,13 +326,13 @@ public class Shaders {
         glGetFloat(GL_PROJECTION_MATRIX, shadowProjection);
         shadowProjection.rewind();
 
-        MatrixUtil.invertMat4x(shadowProjection, shadowProjectionInverse);
+        MatrixUtil.invertMat4(shadowProjection, shadowProjectionInverse);
 
         shadowModelView.position(0);
         glGetFloat(GL_MODELVIEW_MATRIX, shadowModelView);
         shadowModelView.rewind();
 
-        MatrixUtil.invertMat4x(shadowModelView, shadowModelViewInverse);
+        MatrixUtil.invertMat4(shadowModelView, shadowModelViewInverse);
     }
 
     public static void beginRender(Minecraft minecraft, float f, long l) {
@@ -626,15 +626,26 @@ public class Shaders {
         glUniformMatrix4ARB(uniform, transpose, matrix);
     }
 
+    private static final float SUN_HEIGHT = 100.0F;
     public static void setCelestialPosition() {
-        // This is called when the current matrix is the modelview matrix based on the celestial angle.
-        // The sun is at (0, 100, 0), and the moon is at (0, -100, 0).
+        // This is called when the current matrix is the model view matrix based on the celestial angle.
+        // The sun is at (0, 100, 0); the moon at (0, -100, 0).
+
         FloatBuffer modelView = BufferUtils.createFloatBuffer(16);
         glGetFloat(GL_MODELVIEW_MATRIX, modelView);
-        float[] mv = new float[16];
-        modelView.get(mv, 0, 16);
-        sunPosition = MatrixUtil.multiplyMat4xVec4(mv, new float[]{0.0F, 100.0F, 0.0F, 0.0F});
-        moonPosition = MatrixUtil.multiplyMat4xVec4(mv, new float[]{0.0F, -100.0F, 0.0F, 0.0F});
+
+        float[] matrixMV = new float[16];
+        modelView.get(matrixMV, 0, 16);
+
+        // Equivalent to multiplying the matrix by (0, 100, 0, 0).
+        sunPosition[0] = matrixMV[4] * SUN_HEIGHT;
+        sunPosition[1] = matrixMV[5] * SUN_HEIGHT;
+        sunPosition[2] = matrixMV[6] * SUN_HEIGHT;
+
+        // The moon is opposite the sun.
+        moonPosition[0] = -sunPosition[0];
+        moonPosition[1] = -sunPosition[1];
+        moonPosition[2] = -sunPosition[2];
     }
 
     private static int createShader(int shaderType, String filename, Consumer<String> lineProcessor) {
