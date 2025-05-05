@@ -20,7 +20,6 @@ import static org.lwjgl.opengl.ARBFragmentShader.GL_FRAGMENT_SHADER_ARB;
 import static org.lwjgl.opengl.ARBShaderObjects.*;
 import static org.lwjgl.opengl.ARBTextureFloat.GL_RGB32F_ARB;
 import static org.lwjgl.opengl.ARBVertexShader.GL_VERTEX_SHADER_ARB;
-import static org.lwjgl.opengl.ARBVertexShader.glBindAttribLocationARB;
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
@@ -114,16 +113,6 @@ public class Shaders {
         isInitialized = true;
     }
 
-    public static void destroy() {
-        for (ShaderProgram.ShaderProgramType shaderProgramType : ShaderProgram.ShaderProgramType.values()) {
-            int handle = ShaderProgram.shaderProgramId.get(shaderProgramType);
-            if (handle != 0) {
-                glDeleteObjectARB(handle);
-                ShaderProgram.shaderProgramId.put(shaderProgramType, 0);
-            }
-        }
-    }
-
     public static void setClearColor(float red, float green, float blue) {
         clearColor[0] = red;
         clearColor[1] = green;
@@ -205,7 +194,7 @@ public class Shaders {
 
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, sfb);
 
-            ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.NONE);
+            ShaderProgram.useShaderProgram(ShaderProgramType.NONE);
 
             MINECRAFT.gameRenderer.delta(f, l);
 
@@ -218,7 +207,7 @@ public class Shaders {
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, dfb);
 
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
     }
 
     private static void bindTextures() {
@@ -256,7 +245,7 @@ public class Shaders {
 
         glDisable(GL_BLEND);
 
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.COMPOSITE);
+        ShaderProgram.useShaderProgram(ShaderProgramType.COMPOSITE);
 
         glDrawBuffers(dfbDrawBuffers);
 
@@ -267,7 +256,7 @@ public class Shaders {
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.FINAL);
+        ShaderProgram.useShaderProgram(ShaderProgramType.FINAL);
 
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -278,7 +267,7 @@ public class Shaders {
         glEnable(GL_BLEND);
 
         glPopMatrix();
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.NONE);
+        ShaderProgram.useShaderProgram(ShaderProgramType.NONE);
     }
 
     private static void bindTerrainTextures() {
@@ -290,45 +279,45 @@ public class Shaders {
     }
 
     public static void beginTerrain() {
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TERRAIN);
+        ShaderProgram.useShaderProgram(ShaderProgramType.TERRAIN);
         bindTerrainTextures();
     }
 
     public static void endTerrain() {
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
     }
 
     public static void beginWater() {
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.WATER);
+        ShaderProgram.useShaderProgram(ShaderProgramType.WATER);
         bindTerrainTextures();
     }
 
     public static void endWater() {
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
     }
 
     public static void beginHand() {
         glEnable(GL_BLEND);
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.HAND);
+        ShaderProgram.useShaderProgram(ShaderProgramType.HAND);
     }
 
     public static void endHand() {
         glDisable(GL_BLEND);
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
 
         if (isShadowPass) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, sfb); // was set to 0 in beginWeather()
     }
 
     public static void beginWeather() {
         glEnable(GL_BLEND);
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.WEATHER);
+        ShaderProgram.useShaderProgram(ShaderProgramType.WEATHER);
 
         if (isShadowPass) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // will be set to sbf in endHand()
     }
 
     public static void endWeather() {
         glDisable(GL_BLEND);
-        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
     }
 
     private static void resize() {

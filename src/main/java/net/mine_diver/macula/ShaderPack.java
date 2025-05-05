@@ -69,7 +69,7 @@ public class ShaderPack {
     }
 
     public static void loadShaderPack() {
-        Shaders.destroy();
+        ShaderProgram.deleteShaders();
         Shaders.setIsInitialized(false);
         Shaders.init();
         MinecraftInstance.get().worldRenderer.method_1537();

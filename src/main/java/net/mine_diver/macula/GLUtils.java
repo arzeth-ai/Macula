@@ -15,8 +15,8 @@ public class GLUtils {
     public static void glEnableWrapper(int cap) {
         GL11.glEnable(cap);
         if (cap == GL11.GL_TEXTURE_2D) {
-            if (ShaderProgram.activeShaderProgram == ShaderProgram.ShaderProgramType.BASIC) ShaderProgram.useShaderProgram(
-                    ShaderProgram.ShaderProgramType.TEXTURED);
+            if (ShaderProgram.activeShaderProgram == ShaderProgramType.BASIC) ShaderProgram.useShaderProgram(
+                    ShaderProgramType.TEXTURED);
         } else if (cap == GL11.GL_FOG) {
             Shaders.fogEnabled = true;
             Shaders.setProgramUniform1i("fogMode", GL11.glGetInteger(GL11.GL_FOG_MODE));
@@ -26,8 +26,8 @@ public class GLUtils {
     public static void glDisableWrapper(int cap) {
         GL11.glDisable(cap);
         if (cap == GL11.GL_TEXTURE_2D) {
-            if (ShaderProgram.activeShaderProgram == ShaderProgram.ShaderProgramType.TEXTURED || ShaderProgram.activeShaderProgram == ShaderProgram.ShaderProgramType.TEXTURED_LIT)
-                ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.BASIC);
+            if (ShaderProgram.activeShaderProgram == ShaderProgramType.TEXTURED || ShaderProgram.activeShaderProgram == ShaderProgramType.TEXTURED_LIT)
+                ShaderProgram.useShaderProgram(ShaderProgramType.BASIC);
         } else if (cap == GL11.GL_FOG) {
             Shaders.fogEnabled = false;
             Shaders.setProgramUniform1i("fogMode", 0);

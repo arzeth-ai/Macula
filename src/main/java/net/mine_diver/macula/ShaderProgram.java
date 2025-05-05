@@ -7,34 +7,18 @@ import org.lwjgl.opengl.ARBVertexShader;
 import org.lwjgl.opengl.GL11;
 
 import java.util.EnumMap;
+import java.util.Map;
+
+import static org.lwjgl.opengl.ARBShaderObjects.glDeleteObjectARB;
 
 public class ShaderProgram {
-    public enum ShaderProgramType {
-        NONE("", null),
-        BASIC("gbuffers_basic", NONE),
-        TEXTURED("gbuffers_textured", BASIC),
-        TEXTURED_LIT("gbuffers_textured_lit", TEXTURED),
-        TERRAIN("gbuffers_terrain", TEXTURED_LIT),
-        WATER("gbuffers_water", TERRAIN),
-        HAND("gbuffers_hand", TEXTURED_LIT),
-        WEATHER("gbuffers_weather", TEXTURED_LIT),
-        COMPOSITE("composite", NONE),
-        FINAL("final", NONE);
-
-        public final String fileName;
-        public final ShaderProgramType fallback;
-
-        ShaderProgramType(String fileName, ShaderProgramType fallback) {
-            this.fileName = fileName;
-            this.fallback = fallback;
-        }
-    }
-
     public static final EnumMap<ShaderProgramType, Integer> shaderProgramId = new EnumMap<>(ShaderProgramType.class);
-    public static ShaderProgramType activeShaderProgram = ShaderProgramType.NONE;;
+    public static ShaderProgramType activeShaderProgram = ShaderProgramType.NONE;
+
+    public static final int NO_PROGRAM_ID = 0;
 
     public static void initializeShaders() {
-        shaderProgramId.put(ShaderProgramType.NONE, 0);
+        shaderProgramId.put(ShaderProgramType.NONE, NO_PROGRAM_ID);
 
         ShaderProgramType[] shaderProgramTypes = ShaderProgramType.values();
         int shaderProgramTypesLength = shaderProgramTypes.length;
@@ -50,7 +34,7 @@ public class ShaderProgram {
     public static void resolveFallbacks() {
         for (ShaderProgramType shaderProgramType : ShaderProgramType.values()) {
             ShaderProgramType current = shaderProgramType;
-            while (shaderProgramId.get(current) == 0) {
+            while (shaderProgramId.get(current) == NO_PROGRAM_ID) {
                 if (current.fallback == null || current == current.fallback) break;
                 current = current.fallback;
             }
@@ -61,14 +45,14 @@ public class ShaderProgram {
     public static int createShaderProgram(String vertShaderPath, String fragShaderPath) {
         int programId = ARBShaderObjects.glCreateProgramObjectARB();
 
-        if (programId == 0) return 0;
+        if (programId == NO_PROGRAM_ID) return NO_PROGRAM_ID;
 
         int vertShaderId = Shaders.createVertShader(vertShaderPath);
         int fragShaderId = Shaders.createFragShader(fragShaderPath);
 
-        if (vertShaderId != 0 || fragShaderId != 0) {
-            if (vertShaderId != 0) ARBShaderObjects.glAttachObjectARB(programId, vertShaderId);
-            if (fragShaderId != 0) ARBShaderObjects.glAttachObjectARB(programId, fragShaderId);
+        if (vertShaderId != NO_PROGRAM_ID || fragShaderId != NO_PROGRAM_ID) {
+            if (vertShaderId != NO_PROGRAM_ID) ARBShaderObjects.glAttachObjectARB(programId, vertShaderId);
+            if (fragShaderId != NO_PROGRAM_ID) ARBShaderObjects.glAttachObjectARB(programId, fragShaderId);
             if (Shaders.entityAttrib >= 0)
                 ARBVertexShader.glBindAttribLocationARB(programId, Shaders.entityAttrib, "mc_Entity");
             ARBShaderObjects.glLinkProgramARB(programId);
@@ -76,7 +60,7 @@ public class ShaderProgram {
             GLUtils.printLogInfo(programId);
         } else {
             ARBShaderObjects.glDeleteObjectARB(programId);
-            return 0;
+            return NO_PROGRAM_ID;
         }
 
         return programId;
@@ -91,7 +75,7 @@ public class ShaderProgram {
         }
         activeShaderProgram = shaderProgramType;
         ARBShaderObjects.glUseProgramObjectARB(shaderProgramId.get(shaderProgramType));
-        if (shaderProgramId.get(shaderProgramType) == 0) return;
+        if (shaderProgramId.get(shaderProgramType) == NO_PROGRAM_ID) return;
 
         switch (shaderProgramType) {
             case TEXTURED:
@@ -151,5 +135,15 @@ public class ShaderProgram {
         Shaders.setProgramUniform3f("cameraPosition", VectorBuffer.cameraPosition);
         Shaders.setProgramUniformMatrix4("gbufferModelView", MatrixBuffer.modelView);
         Shaders.setProgramUniformMatrix4("gbufferModelViewInverse", MatrixBuffer.modelViewInverse);
+    }
+
+    public static void deleteShaders() {
+        for (Map.Entry<ShaderProgramType, Integer> shaderEntry : shaderProgramId.entrySet()) {
+            int programId = shaderEntry.getValue();
+            if (programId != NO_PROGRAM_ID) {
+                glDeleteObjectARB(programId);
+                shaderEntry.setValue(NO_PROGRAM_ID);
+            }
+        }
     }
 }
