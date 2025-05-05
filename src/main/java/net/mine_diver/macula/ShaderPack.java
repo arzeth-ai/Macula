@@ -24,6 +24,7 @@ public class ShaderPack {
     public static final String BUILT_IN_SHADER = "(internal)";
 
     public static String currentShaderName = SHADER_DISABLED;
+    public static boolean shaderPackLoaded = false;
 
     public static List<String> listShaderPack() {
         ArrayList<String> shaderPackList = new ArrayList<>();

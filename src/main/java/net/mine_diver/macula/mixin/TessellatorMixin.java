@@ -1,5 +1,6 @@
 package net.mine_diver.macula.mixin;
 
+import net.mine_diver.macula.ShaderPack;
 import net.mine_diver.macula.Shaders;
 import net.mine_diver.macula.util.TessellatorAccessor;
 import net.minecraft.class_214;
@@ -47,7 +48,7 @@ public class TessellatorMixin implements TessellatorAccessor {
             )
     )
     private void onDraw1(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         if (Shaders.entityAttrib >= 0) {
             ARBVertexProgram.glEnableVertexAttribArrayARB(Shaders.entityAttrib);
             ARBVertexProgram.glVertexAttribPointerARB(Shaders.entityAttrib, 2, false, false, 4, shadersShortBuffer.position(0));
@@ -63,7 +64,7 @@ public class TessellatorMixin implements TessellatorAccessor {
             )
     )
     private void onDraw2(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         if (Shaders.entityAttrib >= 0)
             ARBVertexProgram.glDisableVertexAttribArrayARB(Shaders.entityAttrib);
     }
@@ -73,7 +74,7 @@ public class TessellatorMixin implements TessellatorAccessor {
             at = @At(value = "RETURN")
     )
     private void onReset(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         shadersBuffer.clear();
     }
 
@@ -82,7 +83,7 @@ public class TessellatorMixin implements TessellatorAccessor {
             at = @At(value = "HEAD")
     )
     private void onAddVertex(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         if (drawingMode == 7 && useTriangles && (vertexAmount + 1) % 4 == 0 && hasNormals) {
             bufferArray[field_2068 + 6] = bufferArray[(field_2068 - 24) + 6];
             shadersBuffer.putShort(shadersData[0]).putShort(shadersData[1]);

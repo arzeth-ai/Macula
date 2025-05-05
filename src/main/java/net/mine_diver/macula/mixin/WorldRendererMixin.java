@@ -1,6 +1,8 @@
 package net.mine_diver.macula.mixin;
 
-import net.mine_diver.macula.Shaders;
+import net.mine_diver.macula.GLUtils;
+import net.mine_diver.macula.ShaderPack;
+import net.mine_diver.macula.VectorBuffer;
 import net.minecraft.client.render.WorldRenderer;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,8 +22,8 @@ public class WorldRendererMixin {
             )
     )
     private void onGetStarBrightness(float par1, CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
-        Shaders.setCelestialPosition();
+        if (!ShaderPack.shaderPackLoaded) return;
+        VectorBuffer.setCelestialPosition();
     }
 
     @Redirect(
@@ -32,11 +34,11 @@ public class WorldRendererMixin {
             )
     )
     private void onGlEnable(int i) {
-        if (!Shaders.shaderPackLoaded) {
+        if (!ShaderPack.shaderPackLoaded) {
             GL11.glEnable(i);
             return;
         }
-        Shaders.glEnableWrapper(i);
+        GLUtils.glEnableWrapper(i);
     }
 
     @Redirect(
@@ -47,10 +49,10 @@ public class WorldRendererMixin {
             )
     )
     private void onGlDisable(int i) {
-        if (!Shaders.shaderPackLoaded) {
+        if (!ShaderPack.shaderPackLoaded) {
             GL11.glDisable(i);
             return;
         }
-        Shaders.glDisableWrapper(i);
+        GLUtils.glDisableWrapper(i);
     }
 }

@@ -4,10 +4,7 @@ package net.mine_diver.macula;
 
 import net.mine_diver.macula.util.MatrixUtil;
 import net.mine_diver.macula.util.MinecraftInstance;
-import net.minecraft.block.BlockBase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Living;
-import net.minecraft.item.ItemInstance;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
@@ -16,7 +13,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.EnumMap;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -36,49 +32,27 @@ public class Shaders {
 
     public static final Minecraft MINECRAFT = MinecraftInstance.get();
 
-    public static boolean isIsInitialized() {
-        return isInitialized;
-    }
-
     public static void setIsInitialized(boolean isInitialized) {
         Shaders.isInitialized = isInitialized;
     }
 
     private static boolean isInitialized = false;
 
-    private static int renderWidth = 0;
-    private static int renderHeight = 0;
-
-    private static final float[] sunPosition = new float[3];
-    private static final float[] moonPosition = new float[3];
+    public static int renderWidth = 0;
+    public static int renderHeight = 0;
 
     private static final float[] clearColor = new float[3];
 
-    private static float rainStrength = 0.0f;
+    public static float rainStrength = 0.0f;
 
-    private static boolean fogEnabled = true;
+    public static boolean fogEnabled = true;
 
     public static int entityAttrib = -1;
-
-    private static final FloatBuffer previousProjection = BufferUtils.createFloatBuffer(16);
-
-    private static final FloatBuffer projection = BufferUtils.createFloatBuffer(16);
-    private static final FloatBuffer projectionInverse = BufferUtils.createFloatBuffer(16);
-
-    private static final FloatBuffer previousModelView = BufferUtils.createFloatBuffer(16);
-
-    private static final FloatBuffer modelView = BufferUtils.createFloatBuffer(16);
-    private static final FloatBuffer modelViewInverse = BufferUtils.createFloatBuffer(16);
-
-    private static final FloatBuffer modelViewCelestial = BufferUtils.createFloatBuffer(16);
-
-    private static final float[] previousCameraPosition = new float[3];
-    private static final float[] cameraPosition = new float[3];
 
     // Shadow stuff
 
     // configuration
-    private static int shadowPassInterval = 0;
+    public static int shadowPassInterval = 0;
     private static int shadowMapWidth = 1024;
     private static int shadowMapHeight = 1024;
     private static float shadowMapFOV = 25.0f;
@@ -87,17 +61,11 @@ public class Shaders {
 
     private static int shadowPassCounter = 0;
 
-    private static boolean isShadowPass = false;
+    public static boolean isShadowPass = false;
 
     private static int sfb = 0;
     private static int sfbDepthTexture = 0;
     private static int sfbDepthBuffer = 0;
-
-    private static final FloatBuffer shadowProjection = BufferUtils.createFloatBuffer(16);
-    private static final FloatBuffer shadowProjectionInverse = BufferUtils.createFloatBuffer(16);
-
-    private static final FloatBuffer shadowModelView = BufferUtils.createFloatBuffer(16);
-    private static final FloatBuffer shadowModelViewInverse = BufferUtils.createFloatBuffer(16);
 
     // Color attachment stuff
 
@@ -111,42 +79,6 @@ public class Shaders {
     private static int dfb = 0;
     private static int dfbDepthBuffer = 0;
 
-    // Program stuff
-    public enum Program {
-        NONE("", null),
-        BASIC("gbuffers_basic", NONE),
-        TEXTURED("gbuffers_textured", BASIC),
-        TEXTURED_LIT("gbuffers_textured_lit", TEXTURED),
-        TERRAIN("gbuffers_terrain", TEXTURED_LIT),
-        WATER("gbuffers_water", TERRAIN),
-        HAND("gbuffers_hand", TEXTURED_LIT),
-        WEATHER("gbuffers_weather", TEXTURED_LIT),
-        COMPOSITE("composite", NONE),
-        FINAL("final", NONE);
-
-        public final String fileName;
-        public final Program fallback;
-
-        Program(String fileName, Program fallback) {
-            this.fileName = fileName;
-            this.fallback = fallback;
-        }
-    }
-
-    public static final EnumMap<Program, Integer> programs = new EnumMap<>(Program.class);
-
-    public static Program activeProgram = Program.NONE;
-
-    // shaderpack fields
-
-    public static boolean shaderPackLoaded = false;
-
-    // debug info
-
-    public static final String glVersionString = GL11.glGetString(GL11.GL_VERSION);
-    public static final String glVendorString = GL11.glGetString(GL11.GL_VENDOR);
-    public static final String glRendererString = GL11.glGetString(GL11.GL_RENDERER);
-
     static {
         if (!ShaderConfig.configDir.exists())
             if (!ShaderConfig.configDir.mkdirs())
@@ -155,15 +87,9 @@ public class Shaders {
     }
 
     public static void init() {
-        if (!(shaderPackLoaded = !ShaderPack.currentShaderName.equals(ShaderPack.SHADER_DISABLED))) return;
+        if (!(ShaderPack.shaderPackLoaded = !ShaderPack.currentShaderName.equals(ShaderPack.SHADER_DISABLED))) return;
 
-        BufferUtils.zeroBuffer(projection);
-        BufferUtils.zeroBuffer(previousProjection);
-        BufferUtils.zeroBuffer(modelView);
-        BufferUtils.zeroBuffer(previousModelView);
-        BufferUtils.zeroBuffer(shadowProjection);
-        BufferUtils.zeroBuffer(shadowModelView);
-        BufferUtils.zeroBuffer(modelViewCelestial);
+        MatrixBuffer.initMatrixBuffer();
 
         int maxDrawBuffers = glGetInteger(GL_MAX_DRAW_BUFFERS);
 
@@ -171,25 +97,11 @@ public class Shaders {
 
         colorAttachments = 4;
 
-        Program[] allPrograms = Program.values();
-        for (Program program : allPrograms) {
-            if (program.fileName.isEmpty()) {
-                programs.put(program, 0);
-            } else {
-                programs.put(program, setupProgram(program.fileName + ".vsh", program.fileName + ".fsh"));
-            }
-        }
+        ShaderProgram.initializeShaders();
 
         if (colorAttachments > maxDrawBuffers) System.out.println("Not enough draw buffers!");
 
-        for (Program program : allPrograms) {
-            Program current = program;
-            while (programs.get(current) == 0) {
-                if (current.fallback == null || current == current.fallback) break;
-                current = current.fallback;
-            }
-            programs.put(program, programs.get(current));
-        }
+        ShaderProgram.resolveFallbacks();
 
         dfbDrawBuffers = BufferUtils.createIntBuffer(colorAttachments);
         for (int i = 0; i < colorAttachments; ++i) dfbDrawBuffers.put(i, GL_COLOR_ATTACHMENT0_EXT + i);
@@ -203,32 +115,12 @@ public class Shaders {
     }
 
     public static void destroy() {
-        for (Program program : Program.values()) {
-            int handle = programs.get(program);
+        for (ShaderProgram.ShaderProgramType shaderProgramType : ShaderProgram.ShaderProgramType.values()) {
+            int handle = ShaderProgram.shaderProgramId.get(shaderProgramType);
             if (handle != 0) {
                 glDeleteObjectARB(handle);
-                programs.put(program, 0);
+                ShaderProgram.shaderProgramId.put(shaderProgramType, 0);
             }
-        }
-    }
-
-    public static void glEnableWrapper(int cap) {
-        glEnable(cap);
-        if (cap == GL_TEXTURE_2D) {
-            if (activeProgram == Program.BASIC) useProgram(Program.TEXTURED);
-        } else if (cap == GL_FOG) {
-            fogEnabled = true;
-            setProgramUniform1i("fogMode", glGetInteger(GL_FOG_MODE));
-        }
-    }
-
-    public static void glDisableWrapper(int cap) {
-        glDisable(cap);
-        if (cap == GL_TEXTURE_2D) {
-            if (activeProgram == Program.TEXTURED || activeProgram == Program.TEXTURED_LIT) useProgram(Program.BASIC);
-        } else if (cap == GL_FOG) {
-            fogEnabled = false;
-            setProgramUniform1i("fogMode", 0);
         }
     }
 
@@ -258,47 +150,7 @@ public class Shaders {
         glDrawBuffers(dfbDrawBuffers);
     }
 
-    private static void copyBuffer(FloatBuffer src, FloatBuffer dst) {
-        dst.clear();
-        dst.put(src);
-        dst.flip();
-    }
-
-    private static void getMatrixBuffer(int glMatrixType, FloatBuffer buffer) {
-        buffer.clear();
-        glGetFloat(glMatrixType, buffer);
-    }
-
-    public static void setCamera(float f) {
-        Living viewEntity = MINECRAFT.viewEntity;
-
-        double x = viewEntity.prevRenderX + (viewEntity.x - viewEntity.prevRenderX) * f;
-        double y = viewEntity.prevRenderY + (viewEntity.y - viewEntity.prevRenderY) * f;
-        double z = viewEntity.prevRenderZ + (viewEntity.z - viewEntity.prevRenderZ) * f;
-
-        if (isShadowPass) {
-            setupShadowViewportAndMatrices(f, (float) x, (float) y, (float) z);
-            return;
-        }
-
-        copyBuffer(projection, previousProjection);
-        getMatrixBuffer(GL_PROJECTION_MATRIX, projection);
-        MatrixUtil.invertMat4(projection, projectionInverse);
-
-        copyBuffer(modelView, previousModelView);
-        getMatrixBuffer(GL_MODELVIEW_MATRIX, modelView);
-        MatrixUtil.invertMat4(modelView, modelViewInverse);
-
-        previousCameraPosition[0] = cameraPosition[0];
-        previousCameraPosition[1] = cameraPosition[1];
-        previousCameraPosition[2] = cameraPosition[2];
-
-        cameraPosition[0] = (float) x;
-        cameraPosition[1] = (float) y;
-        cameraPosition[2] = (float) z;
-    }
-
-    private static void setupShadowViewportAndMatrices(float f, float x, float y, float z) {
+    public static void setupShadowViewportAndMatrices(float f, float x, float y, float z) {
         glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 
         glMatrixMode(GL_PROJECTION);
@@ -325,11 +177,11 @@ public class Shaders {
             glTranslatef(x % 10.0f - 5.0f, y % 10.0f - 5.0f, z % 10.0f - 5.0f);
 
 
-        getMatrixBuffer(GL_PROJECTION_MATRIX, shadowProjection);
-        MatrixUtil.invertMat4(shadowProjection, shadowProjectionInverse);
+        MatrixBuffer.getMatrixBuffer(GL_PROJECTION_MATRIX, MatrixBuffer.shadowProjection);
+        MatrixUtil.invertMat4(MatrixBuffer.shadowProjection, MatrixBuffer.shadowProjectionInverse);
 
-        getMatrixBuffer(GL_MODELVIEW_MATRIX, shadowModelView);
-        MatrixUtil.invertMat4(shadowModelView, shadowModelViewInverse);
+        MatrixBuffer.getMatrixBuffer(GL_MODELVIEW_MATRIX, MatrixBuffer.shadowModelView);
+        MatrixUtil.invertMat4(MatrixBuffer.shadowModelView, MatrixBuffer.shadowModelViewInverse);
     }
 
     public static void beginRender(Minecraft minecraft, float f, long l) {
@@ -338,7 +190,7 @@ public class Shaders {
         if (isShadowPass) return;
 
         if (!isInitialized) init();
-        if (!shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         if (MINECRAFT.actualWidth != renderWidth || MINECRAFT.actualHeight != renderHeight)
             resize();
 
@@ -353,7 +205,7 @@ public class Shaders {
 
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, sfb);
 
-            useProgram(Program.NONE);
+            ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.NONE);
 
             MINECRAFT.gameRenderer.delta(f, l);
 
@@ -366,7 +218,7 @@ public class Shaders {
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, dfb);
 
-        useProgram(Program.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
     }
 
     private static void bindTextures() {
@@ -383,32 +235,6 @@ public class Shaders {
         glActiveTexture(GL_TEXTURE0);
 
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-
-    private static void drawQuad() {
-        glBegin(GL_TRIANGLES);
-
-        // First triangle
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex3f(1.0f, 0.0f, 0.0f);
-
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex3f(1.0f, 1.0f, 0.0f);
-
-        // Second triangle
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex3f(1.0f, 1.0f, 0.0f);
-
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex3f(0.0f, 1.0f, 0.0f);
-
-        glEnd();
     }
 
 
@@ -430,29 +256,29 @@ public class Shaders {
 
         glDisable(GL_BLEND);
 
-        useProgram(Program.COMPOSITE);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.COMPOSITE);
 
         glDrawBuffers(dfbDrawBuffers);
 
         bindTextures();
-        drawQuad();
+        GLUtils.drawQuad();
 
         // final
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-        useProgram(Program.FINAL);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.FINAL);
 
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         bindTextures();
-        drawQuad();
+        GLUtils.drawQuad();
 
         glEnable(GL_BLEND);
 
         glPopMatrix();
-        useProgram(Program.NONE);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.NONE);
     }
 
     private static void bindTerrainTextures() {
@@ -464,45 +290,45 @@ public class Shaders {
     }
 
     public static void beginTerrain() {
-        useProgram(Program.TERRAIN);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TERRAIN);
         bindTerrainTextures();
     }
 
     public static void endTerrain() {
-        useProgram(Program.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
     }
 
     public static void beginWater() {
-        useProgram(Program.WATER);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.WATER);
         bindTerrainTextures();
     }
 
     public static void endWater() {
-        useProgram(Program.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
     }
 
     public static void beginHand() {
         glEnable(GL_BLEND);
-        useProgram(Program.HAND);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.HAND);
     }
 
     public static void endHand() {
         glDisable(GL_BLEND);
-        useProgram(Program.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
 
         if (isShadowPass) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, sfb); // was set to 0 in beginWeather()
     }
 
     public static void beginWeather() {
         glEnable(GL_BLEND);
-        useProgram(Program.WEATHER);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.WEATHER);
 
         if (isShadowPass) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // will be set to sbf in endHand()
     }
 
     public static void endWeather() {
         glDisable(GL_BLEND);
-        useProgram(Program.TEXTURED);
+        ShaderProgram.useShaderProgram(ShaderProgram.ShaderProgramType.TEXTURED);
     }
 
     private static void resize() {
@@ -511,106 +337,9 @@ public class Shaders {
         setupFrameBuffer();
     }
 
-    private static int setupProgram(String vShaderPath, String fShaderPath) {
-        int program = glCreateProgramObjectARB();
-
-        int vShader = 0;
-        int fShader = 0;
-
-        if (program != 0) {
-            vShader = createVertShader(vShaderPath);
-            fShader = createFragShader(fShaderPath);
-        }
-
-        if (vShader != 0 || fShader != 0) {
-            if (vShader != 0) glAttachObjectARB(program, vShader);
-            if (fShader != 0) glAttachObjectARB(program, fShader);
-            if (entityAttrib >= 0) glBindAttribLocationARB(program, entityAttrib, "mc_Entity");
-            glLinkProgramARB(program);
-            glValidateProgramARB(program);
-            printLogInfo(program);
-        } else if (program != 0) {
-            glDeleteObjectARB(program);
-            program = 0;
-        }
-
-        return program;
-    }
-
-    public static void useProgram(Program program) {
-        if (activeProgram == program) return;
-        if (isShadowPass) {
-            activeProgram = Program.NONE;
-            glUseProgramObjectARB(programs.get(Program.NONE));
-            return;
-        }
-        activeProgram = program;
-        glUseProgramObjectARB(programs.get(program));
-        if (programs.get(program) == 0) return;
-
-        switch (program) {
-            case TEXTURED:
-                setProgramUniform1i("texture", 0);
-                break;
-            case TEXTURED_LIT:
-            case HAND:
-            case WEATHER:
-                setProgramUniform1i("texture", 0);
-                setProgramUniform1i("lightmap", 1);
-                break;
-            case TERRAIN:
-            case WATER:
-                setProgramUniform1i("texture", 0);
-                setProgramUniform1i("lightmap", 1);
-                setProgramUniform1i("normals", 2);
-                setProgramUniform1i("specular", 3);
-                break;
-            case COMPOSITE:
-            case FINAL:
-                setProgramUniform1i("gcolor", 0);
-                setProgramUniform1i("gdepth", 1);
-                setProgramUniform1i("gnormal", 2);
-                setProgramUniform1i("composite", 3);
-                setProgramUniform1i("gaux1", 4);
-                setProgramUniform1i("gaux2", 5);
-                setProgramUniform1i("gaux3", 6);
-                setProgramUniform1i("shadow", 7);
-                setProgramUniformMatrix4("gbufferPreviousProjection", previousProjection);
-                setProgramUniformMatrix4("gbufferProjection", projection);
-                setProgramUniformMatrix4("gbufferProjectionInverse", projectionInverse);
-                setProgramUniformMatrix4("gbufferPreviousModelView", previousModelView);
-                if (shadowPassInterval > 0) {
-                    setProgramUniformMatrix4("shadowProjection", shadowProjection);
-                    setProgramUniformMatrix4("shadowProjectionInverse", shadowProjectionInverse);
-                    setProgramUniformMatrix4("shadowModelView", shadowModelView);
-                    setProgramUniformMatrix4("shadowModelViewInverse", shadowModelViewInverse);
-                }
-                break;
-        }
-
-        ItemInstance stack = MINECRAFT.player.inventory.getHeldItem();
-        setProgramUniform1i("heldItemId", (stack == null ? -1 : stack.itemId));
-        setProgramUniform1i("heldBlockLightValue",
-                (stack == null || stack.itemId >= BlockBase.BY_ID.length ? 0 : BlockBase.EMITTANCE[stack.itemId]));
-        setProgramUniform1i("fogMode", (fogEnabled ? glGetInteger(GL_FOG_MODE) : 0));
-        setProgramUniform1f("rainStrength", rainStrength);
-        setProgramUniform1i("worldTime", (int) (MINECRAFT.level.getLevelTime() % 24000L));
-        setProgramUniform1f("aspectRatio", (float) renderWidth / (float) renderHeight);
-        setProgramUniform1f("viewWidth", (float) renderWidth);
-        setProgramUniform1f("viewHeight", (float) renderHeight);
-        setProgramUniform1f("near", 0.05F);
-        setProgramUniform1f("far", 256 >> MINECRAFT.options.viewDistance);
-        setProgramUniform3f("sunPosition", sunPosition);
-        setProgramUniform3f("moonPosition", moonPosition);
-        setProgramUniform3f("previousCameraPosition", previousCameraPosition);
-        setProgramUniform3f("cameraPosition", cameraPosition);
-        setProgramUniformMatrix4("gbufferModelView", modelView);
-        setProgramUniformMatrix4("gbufferModelViewInverse", modelViewInverse);
-    }
-
     private static int getUniformLocation(String name) {
         // TODO: Implement uniform location caching to avoid repeated calls to glGetUniformLocation
-        return glGetUniformLocationARB(programs.get(activeProgram), name);
+        return glGetUniformLocationARB(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram), name);
     }
 
     public static void setProgramUniform1i(String name, int n) {
@@ -634,27 +363,6 @@ public class Shaders {
         if (uniform != -1) glUniformMatrix4ARB(uniform, TRANSPOSE, mat4);
     }
 
-    public static void setCelestialPosition() {
-        // This is called when the current matrix is the model view matrix based on the celestial angle.
-        // The sun is at (0, 100, 0); the moon at (0, -100, 0).
-
-        getMatrixBuffer(GL_MODELVIEW_MATRIX, modelViewCelestial);
-
-        float[] matrixMV = new float[16];
-        modelViewCelestial.get(0, matrixMV, 0, 16);
-
-        // Equivalent to multiplying the matrix by (0, 100, 0, 0).
-        final float SUN_HEIGHT = 100.0F;
-        sunPosition[0] = matrixMV[4] * SUN_HEIGHT;
-        sunPosition[1] = matrixMV[5] * SUN_HEIGHT;
-        sunPosition[2] = matrixMV[6] * SUN_HEIGHT;
-
-        // The moon is opposite the sun.
-        moonPosition[0] = -sunPosition[0];
-        moonPosition[1] = -sunPosition[1];
-        moonPosition[2] = -sunPosition[2];
-    }
-
     private static int createShader(int shaderType, String filename, Consumer<String> lineProcessor) {
         int shader = glCreateShaderObjectARB(shaderType);
         if (shader == 0) return 0;
@@ -674,7 +382,7 @@ public class Shaders {
 
         glShaderSourceARB(shader, shaderCode.toString());
         glCompileShaderARB(shader);
-        printLogInfo(shader);
+        GLUtils.printLogInfo(shader);
         return shader;
     }
 
@@ -684,7 +392,7 @@ public class Shaders {
         if (MC_ENTITY.matcher(line).matches()) entityAttrib = 10;
     }
 
-    private static int createVertShader(String filename) {
+    public static int createVertShader(String filename) {
         return createShader(GL_VERTEX_SHADER_ARB, filename, Shaders::vertPattern);
     }
 
@@ -723,26 +431,8 @@ public class Shaders {
         }
     }
 
-    private static int createFragShader(String filename) {
+    public static int createFragShader(String filename) {
         return createShader(GL_FRAGMENT_SHADER_ARB, filename, Shaders::fragPattern);
-    }
-
-    private static boolean printLogInfo(int obj) {
-        IntBuffer iVal = BufferUtils.createIntBuffer(1);
-        glGetObjectParameterARB(obj, GL_OBJECT_INFO_LOG_LENGTH_ARB, iVal);
-
-        int length = iVal.get();
-        if (length > 1) {
-            ByteBuffer infoLog = BufferUtils.createByteBuffer(length);
-            iVal.flip();
-            glGetInfoLogARB(obj, iVal, infoLog);
-            byte[] infoBytes = new byte[length];
-            infoLog.get(infoBytes);
-            String out = new String(infoBytes);
-            System.out.println("Info log:\n" + out);
-            return false;
-        }
-        return true;
     }
 
     private static void setupFrameBuffer() {

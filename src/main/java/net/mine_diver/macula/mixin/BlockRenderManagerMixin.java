@@ -1,6 +1,6 @@
 package net.mine_diver.macula.mixin;
 
-import net.mine_diver.macula.Shaders;
+import net.mine_diver.macula.ShaderPack;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.block.BlockRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +15,7 @@ public class BlockRenderManagerMixin {
             at = @At("HEAD")
     )
     private void onRenderBottomFace(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         Tessellator.INSTANCE.setNormal(0.0F, -1.0F, 0.0F);
     }
 
@@ -24,7 +24,7 @@ public class BlockRenderManagerMixin {
             at = @At("HEAD")
     )
     private void onRenderTopFace(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         Tessellator.INSTANCE.setNormal(0.0F, 1.0F, 0.0F);
     }
 
@@ -33,7 +33,7 @@ public class BlockRenderManagerMixin {
             at = @At("HEAD")
     )
     private void onRenderEastFace(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         Tessellator.INSTANCE.setNormal(0.0F, 0.0F, -1.0F);
     }
 
@@ -42,7 +42,7 @@ public class BlockRenderManagerMixin {
             at = @At("HEAD")
     )
     private void onRenderWestFace(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         Tessellator.INSTANCE.setNormal(0.0F, 0.0F, 1.0F);
     }
 
@@ -51,7 +51,7 @@ public class BlockRenderManagerMixin {
             at = @At("HEAD")
     )
     private void onRenderNorthFace(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         Tessellator.INSTANCE.setNormal(-1.0F, 0.0F, 0.0F);
     }
 
@@ -60,7 +60,7 @@ public class BlockRenderManagerMixin {
             at = @At("HEAD")
     )
     private void onRenderSouthFace(CallbackInfo ci) {
-        if (!Shaders.shaderPackLoaded) return;
+        if (!ShaderPack.shaderPackLoaded) return;
         Tessellator.INSTANCE.setNormal(1.0F, 0.0F, 0.0F);
     }
 }

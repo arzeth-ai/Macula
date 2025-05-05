@@ -1,8 +1,8 @@
 package net.mine_diver.macula.gui;
 
+import net.mine_diver.macula.GLUtils;
 import net.mine_diver.macula.ShaderConfig;
 import net.mine_diver.macula.ShaderPack;
-import net.mine_diver.macula.Shaders;
 import net.mine_diver.macula.option.ShaderOption;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.ScreenBase;
@@ -103,7 +103,7 @@ public class ShadersScreen extends ScreenBase {
         //noinspection unchecked
         for (Button button : (List<Button>) buttons)
             if (button.id != SHADERS_FOLDER_BUTTON_ID && button.id != DONE_BUTTON_ID)
-                button.active = Shaders.shaderPackLoaded;
+                button.active = ShaderPack.shaderPackLoaded;
     }
 
     @Override
@@ -151,7 +151,7 @@ public class ShadersScreen extends ScreenBase {
             updateTimer += 20;
         }
         drawTextWithShadowCentred(textManager, "Shaders", width / 2, 15, 0xffffff);
-        String debug = "OpenGL: " + Shaders.glVersionString + ", " + Shaders.glVendorString + ", " + Shaders.glRendererString;
+        String debug = "OpenGL: " + GLUtils.glVersionString + ", " + GLUtils.glVendorString + ", " + GLUtils.glRendererString;
         int debugWidth = textManager.getTextWidth(debug);
         if (debugWidth < width - 5)
             drawTextWithShadowCentred(textManager, debug, width / 2, height - 40, 0x808080);
