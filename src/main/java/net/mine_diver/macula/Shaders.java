@@ -11,7 +11,6 @@ import org.lwjgl.opengl.GL11;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -324,32 +323,6 @@ public class Shaders {
         renderWidth = MINECRAFT.actualWidth;
         renderHeight = MINECRAFT.actualHeight;
         setupFrameBuffer();
-    }
-
-    private static int getUniformLocation(String name) {
-        // TODO: Implement uniform location caching to avoid repeated calls to glGetUniformLocation
-        return glGetUniformLocationARB(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram), name);
-    }
-
-    public static void setProgramUniform1i(String name, int n) {
-        int uniform = getUniformLocation(name);
-        if (uniform != -1) glUniform1iARB(uniform, n);
-    }
-
-    public static void setProgramUniform1f(String name, float x) {
-        int uniform = getUniformLocation(name);
-        if (uniform != -1) glUniform1fARB(uniform, x);
-    }
-
-    public static void setProgramUniform3f(String name, float[] vec3) {
-        int uniform = getUniformLocation(name);
-        if (uniform != -1) glUniform3fARB(uniform, vec3[0], vec3[1], vec3[2]);
-    }
-
-    public static void setProgramUniformMatrix4(String name, FloatBuffer mat4) {
-        int uniform = getUniformLocation(name);
-        final boolean TRANSPOSE = false;
-        if (uniform != -1) glUniformMatrix4ARB(uniform, TRANSPOSE, mat4);
     }
 
     private static int createShader(int shaderType, String filename, Consumer<String> lineProcessor) {

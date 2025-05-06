@@ -19,7 +19,7 @@ public class GLUtils {
                     ShaderProgramType.TEXTURED);
         } else if (cap == GL11.GL_FOG) {
             Shaders.fogEnabled = true;
-            Shaders.setProgramUniform1i("fogMode", GL11.glGetInteger(GL11.GL_FOG_MODE));
+            ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram), "fogMode", GL11.glGetInteger(GL11.GL_FOG_MODE));
         }
     }
 
@@ -30,7 +30,7 @@ public class GLUtils {
                 ShaderProgram.useShaderProgram(ShaderProgramType.BASIC);
         } else if (cap == GL11.GL_FOG) {
             Shaders.fogEnabled = false;
-            Shaders.setProgramUniform1i("fogMode", 0);
+            ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram), "fogMode", 0);
         }
     }
 
