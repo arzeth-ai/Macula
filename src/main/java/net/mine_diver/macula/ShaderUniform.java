@@ -13,12 +13,7 @@ public class ShaderUniform {
         int nameHash = name.hashCode() & 0xFFFF;
         int key = (programId << 16) | nameHash;
 
-        Integer location = uniformLocationCache.get(key);
-        if (location != null) return location;
-
-        int locationValue = ARBShaderObjects.glGetUniformLocationARB(programId, name);
-        uniformLocationCache.put(key, locationValue);
-        return locationValue;
+        return uniformLocationCache.computeIfAbsent(key, k -> ARBShaderObjects.glGetUniformLocationARB(programId, name));
     }
 
     public static void setProgramUniform1i(int programId, String name, int n) {
