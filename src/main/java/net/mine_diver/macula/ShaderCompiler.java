@@ -17,7 +17,6 @@ public class ShaderCompiler {
     static final Pattern PATTERN_GAUX3 = Pattern.compile("uniform [ _a-zA-Z0-9]+ gaux3;.*");
     static final Pattern PATTERN_SHADOW = Pattern.compile("uniform [ _a-zA-Z0-9]+ shadow;.*");
     static final Pattern PATTERN_SHADOWRES = Pattern.compile("/\\* SHADOWRES:([0-9]+) \\*/.*");
-    static final Pattern PATTERN_SHADOWFOV = Pattern.compile("/\\* SHADOWFOV:([0-9.]+) \\*/.*");
     static final Pattern PATTERN_SHADOWHPL = Pattern.compile("/\\* SHADOWHPL:([0-9.]+) \\*/.*");
     static final Pattern SPLIT_PATTERN = Pattern.compile("[: ]");
 
@@ -66,16 +65,10 @@ public class ShaderCompiler {
             Shaders.shadowResolution = Math.round(
                     Integer.parseInt(parts[2]) * ShaderConfig.configShadowResMul);
             System.out.println("Shadow map resolution: " + Shaders.shadowResolution);
-        } else if (PATTERN_SHADOWFOV.matcher(line).matches()) {
-            String[] parts = SPLIT_PATTERN.split(line, 4);
-            System.out.println("Shadow map field of view: " + parts[2]);
-            Shaders.shadowMapFOV = Float.parseFloat(parts[2]);
-            Shaders.shadowMapIsOrtho = false;
         } else if (PATTERN_SHADOWHPL.matcher(line).matches()) {
             String[] parts = SPLIT_PATTERN.split(line, 4);
             System.out.println("Shadow map half-plane: " + parts[2]);
             Shaders.shadowMapHalfPlane = Float.parseFloat(parts[2]);
-            Shaders.shadowMapIsOrtho = true;
         }
     }
 

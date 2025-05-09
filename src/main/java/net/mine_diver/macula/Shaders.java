@@ -17,7 +17,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL20.GL_MAX_DRAW_BUFFERS;
 import static org.lwjgl.opengl.GL20.glDrawBuffers;
-import static org.lwjgl.util.glu.GLU.gluPerspective;
 
 public class Shaders {
 
@@ -41,9 +40,7 @@ public class Shaders {
     // configuration
     public static boolean shadowEnabled = false;
     public static int shadowResolution = 1024;
-    public static float shadowMapFOV = 25.0f;
     public static float shadowMapHalfPlane = 30.0f;
-    public static boolean shadowMapIsOrtho = true;
 
     public static boolean isShadowPass = false;
 
@@ -133,11 +130,7 @@ public class Shaders {
         glLoadIdentity();
 
         // just backwards compatibility. it's only used when SHADOWFOV is set in the shaders.
-        if (shadowMapIsOrtho) {
-            glOrtho(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, 0.05f, 256.0f);
-        } else {
-            gluPerspective(shadowMapFOV, 1.0f, 0.05f, 256.0f);
-        }
+        glOrtho(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, 0.05f, 256.0f);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
@@ -149,8 +142,7 @@ public class Shaders {
         if (angle < 90.0 || angle > 270.0) glRotatef(angle - 90.0f, -1.0f, 0.0f, 0.0f);
         else glRotatef(angle + 90.0f, -1.0f, 0.0f, 0.0f);
         // reduces jitter
-        if (shadowMapIsOrtho)
-            glTranslatef(x % 10.0f - 5.0f, y % 10.0f - 5.0f, z % 10.0f - 5.0f);
+        glTranslatef(x % 10.0f - 5.0f, y % 10.0f - 5.0f, z % 10.0f - 5.0f);
 
 
         MatrixBuffer.getMatrixBuffer(GL_PROJECTION_MATRIX, MatrixBuffer.shadowProjection);
