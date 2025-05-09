@@ -109,7 +109,7 @@ public class ShaderProgram {
                 ShaderUniform.setProgramUniformMatrix4(programId, "gbufferProjection", MatrixBuffer.projection);
                 ShaderUniform.setProgramUniformMatrix4(programId, "gbufferProjectionInverse", MatrixBuffer.projectionInverse);
                 ShaderUniform.setProgramUniformMatrix4(programId, "gbufferPreviousModelView", MatrixBuffer.previousModelView);
-                if (Shaders.shadowPassInterval > 0) {
+                if (Shaders.shadowEnabled) {
                     ShaderUniform.setProgramUniformMatrix4(programId, "shadowProjection", MatrixBuffer.shadowProjection);
                     ShaderUniform.setProgramUniformMatrix4(programId, "shadowProjectionInverse", MatrixBuffer.shadowProjectionInverse);
                     ShaderUniform.setProgramUniformMatrix4(programId, "shadowModelView", MatrixBuffer.shadowModelView);

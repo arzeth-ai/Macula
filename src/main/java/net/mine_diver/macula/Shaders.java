@@ -39,13 +39,11 @@ public class Shaders {
     // Shadow stuff
 
     // configuration
-    public static int shadowPassInterval = 0;
+    public static boolean shadowEnabled = false;
     public static int shadowResolution = 1024;
     public static float shadowMapFOV = 25.0f;
     public static float shadowMapHalfPlane = 30.0f;
     public static boolean shadowMapIsOrtho = true;
-
-    private static int shadowPassCounter = 0;
 
     public static boolean isShadowPass = false;
 
@@ -171,26 +169,20 @@ public class Shaders {
         if (!ShaderPack.shaderPackLoaded) return;
         if (MINECRAFT.actualWidth != renderWidth || MINECRAFT.actualHeight != renderHeight)
             resize();
-
-        if (shadowPassInterval > 0 && --shadowPassCounter <= 0) {
+        
+        if (shadowEnabled) {
             // do shadow pass
             boolean preShadowPassThirdPersonView = MINECRAFT.options.thirdPerson;
-
             MINECRAFT.options.thirdPerson = true;
 
             isShadowPass = true;
-            shadowPassCounter = shadowPassInterval;
 
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, shadowFramebuffer);
-
             ShaderProgram.useShaderProgram(ShaderProgramType.NONE);
-
             MINECRAFT.gameRenderer.delta(f, l);
-
             glFlush();
 
             isShadowPass = false;
-
             MINECRAFT.options.thirdPerson = preShadowPassThirdPersonView;
         }
 
@@ -205,7 +197,7 @@ public class Shaders {
             glBindTexture(GL_TEXTURE_2D, defaultTextures.get(i));
         }
 
-        if (shadowPassInterval > 0) {
+        if (shadowEnabled) {
             glActiveTexture(GL_TEXTURE7);
             glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
         }
@@ -357,7 +349,7 @@ public class Shaders {
     }
 
     private static void setupShadowFrameBuffer() {
-        if (shadowPassInterval <= 0) return;
+        if (!shadowEnabled) return;
 
         setupShadowRenderTexture();
 
@@ -405,7 +397,7 @@ public class Shaders {
     }
 
     private static void setupShadowRenderTexture() {
-        if (shadowPassInterval <= 0) return;
+        if (!shadowEnabled) return;
 
         glDeleteTextures(shadowDepthTexture);
         shadowDepthTexture = glGenTextures();

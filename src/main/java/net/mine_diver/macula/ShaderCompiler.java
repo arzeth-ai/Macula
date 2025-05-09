@@ -59,7 +59,7 @@ public class ShaderCompiler {
         else if (Shaders.colorAttachments < 7 && PATTERN_GAUX3.matcher(line).matches())
             Shaders.colorAttachments = 7;
         else if (Shaders.colorAttachments < 8 && PATTERN_SHADOW.matcher(line).matches()) {
-            Shaders.shadowPassInterval = 1;
+            Shaders.shadowEnabled = true;
             Shaders.colorAttachments = 8;
         } else if (PATTERN_SHADOWRES.matcher(line).matches()) {
             String[] parts = SPLIT_PATTERN.split(line, 4);
