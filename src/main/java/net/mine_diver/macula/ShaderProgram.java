@@ -47,8 +47,8 @@ public class ShaderProgram {
 
         if (programId == NO_PROGRAM_ID) return NO_PROGRAM_ID;
 
-        int vertShaderId = Shaders.createVertShader(vertShaderPath);
-        int fragShaderId = Shaders.createFragShader(fragShaderPath);
+        int vertShaderId = ShaderCompiler.createVertShader(vertShaderPath);
+        int fragShaderId = ShaderCompiler.createFragShader(fragShaderPath);
 
         if (vertShaderId != NO_PROGRAM_ID || fragShaderId != NO_PROGRAM_ID) {
             if (vertShaderId != NO_PROGRAM_ID) ARBShaderObjects.glAttachObjectARB(programId, vertShaderId);
