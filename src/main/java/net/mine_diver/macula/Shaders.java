@@ -41,6 +41,8 @@ public class Shaders {
     public static boolean shadowEnabled = false;
     public static int shadowResolution = 1024;
     public static float shadowMapHalfPlane = 30.0f;
+    public static final float NEAR = 0.05f;
+    public static final  float FAR = 256.0f;
 
     public static boolean isShadowPass = false;
 
@@ -123,17 +125,12 @@ public class Shaders {
         glDrawBuffers(defaultDrawBuffers);
     }
 
-    public static void setupShadowViewportAndMatrices(float f, float x, float y, float z) {
+    public static void setupShadowViewport(float f, float x, float y, float z) {
         glViewport(0, 0, shadowResolution, shadowResolution);
 
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
+        setupOrthographicProjection(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, NEAR,
+                FAR);
 
-        // just backwards compatibility. it's only used when SHADOWFOV is set in the shaders.
-        glOrtho(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, 0.05f, 256.0f);
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
         glTranslatef(0.0f, 0.0f, -100.0f);
         glRotatef(90.0f, 0.0f, 0.0f, -1.0f);
         float angle = MINECRAFT.level.method_198(f) * 360.0f;
@@ -141,10 +138,22 @@ public class Shaders {
         // day time
         if (angle < 90.0 || angle > 270.0) glRotatef(angle - 90.0f, -1.0f, 0.0f, 0.0f);
         else glRotatef(angle + 90.0f, -1.0f, 0.0f, 0.0f);
+
         // reduces jitter
         glTranslatef(x % 10.0f - 5.0f, y % 10.0f - 5.0f, z % 10.0f - 5.0f);
+    }
 
+    private static void setupOrthographicProjection(float left, float right, float bottom, float top, float near, float far) {
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
 
+        glOrtho(left, right, bottom, top, near, far);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+    }
+
+    public static void setupShadowMatrix() {
         MatrixBuffer.getMatrixBuffer(GL_PROJECTION_MATRIX, MatrixBuffer.shadowProjection);
         MatrixUtil.invertMat4(MatrixBuffer.shadowProjection, MatrixBuffer.shadowProjectionInverse);
 
@@ -205,11 +214,7 @@ public class Shaders {
 
         glPushMatrix();
 
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        setupOrthographicProjection(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
@@ -395,8 +400,8 @@ public class Shaders {
         shadowDepthTexture = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
 
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

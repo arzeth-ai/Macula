@@ -13,12 +13,13 @@ public class VectorBuffer {
     public static void setCamera(float f) {
         Living viewEntity = Shaders.MINECRAFT.viewEntity;
 
-        double x = viewEntity.prevRenderX + (viewEntity.x - viewEntity.prevRenderX) * f;
-        double y = viewEntity.prevRenderY + (viewEntity.y - viewEntity.prevRenderY) * f;
-        double z = viewEntity.prevRenderZ + (viewEntity.z - viewEntity.prevRenderZ) * f;
+        float x = (float) (viewEntity.prevRenderX + (viewEntity.x - viewEntity.prevRenderX) * f);
+        float y = (float) (viewEntity.prevRenderY + (viewEntity.y - viewEntity.prevRenderY) * f);
+        float z = (float) (viewEntity.prevRenderZ + (viewEntity.z - viewEntity.prevRenderZ) * f);
 
         if (Shaders.isShadowPass) {
-            Shaders.setupShadowViewportAndMatrices(f, (float) x, (float) y, (float) z);
+            Shaders.setupShadowViewport(f, x, y, z);
+            Shaders.setupShadowMatrix();
             return;
         }
 
@@ -34,9 +35,9 @@ public class VectorBuffer {
         previousCameraPosition[1] = cameraPosition[1];
         previousCameraPosition[2] = cameraPosition[2];
 
-        cameraPosition[0] = (float) x;
-        cameraPosition[1] = (float) y;
-        cameraPosition[2] = (float) z;
+        cameraPosition[0] = x;
+        cameraPosition[1] = y;
+        cameraPosition[2] = z;
     }
 
     public static void setCelestialPosition() {
