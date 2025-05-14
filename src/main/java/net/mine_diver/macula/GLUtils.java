@@ -19,7 +19,8 @@ public class GLUtils {
                     ShaderProgramType.TEXTURED);
         } else if (cap == GL11.GL_FOG) {
             Shaders.fogEnabled = true;
-            ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram), "fogMode", GL11.glGetInteger(GL11.GL_FOG_MODE));
+            ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram),
+                    "fogMode", GL11.glGetInteger(GL11.GL_FOG_MODE));
         }
     }
 
@@ -30,11 +31,12 @@ public class GLUtils {
                 ShaderProgram.useShaderProgram(ShaderProgramType.BASIC);
         } else if (cap == GL11.GL_FOG) {
             Shaders.fogEnabled = false;
-            ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram), "fogMode", 0);
+            ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram),
+                    "fogMode", 0);
         }
     }
 
-    public static void drawQuad() {
+    public static void glDrawQuad() {
         GL11.glBegin(GL11.GL_TRIANGLES);
 
         // First triangle
@@ -76,5 +78,10 @@ public class GLUtils {
             return false;
         }
         return true;
+    }
+
+    static void glClearBuffer(float red, float green, float blue, float alpha) {
+        GL11.glClearColor(red, green, blue, alpha);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
     }
 }

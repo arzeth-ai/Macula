@@ -105,22 +105,18 @@ public class Shaders {
         clearColor[2] = blue;
 
         if (isShadowPass) {
-            glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            GLUtils.glClearBuffer(clearColor[0], clearColor[1], clearColor[2], 1f);
             return;
         }
 
         glDrawBuffers(defaultDrawBuffers);
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GLUtils.glClearBuffer(0f, 0f, 0f, 0f);
 
         glDrawBuffers(GL_COLOR_ATTACHMENT0_EXT);
-        glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GLUtils.glClearBuffer(clearColor[0], clearColor[1], clearColor[2], 1f);
 
         glDrawBuffers(GL_COLOR_ATTACHMENT1_EXT);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GLUtils.glClearBuffer(1f, 1f, 1f, 1f);
 
         glDrawBuffers(defaultDrawBuffers);
     }
@@ -128,7 +124,8 @@ public class Shaders {
     public static void setupShadowViewport(float f, float x, float y, float z) {
         glViewport(0, 0, shadowResolution, shadowResolution);
 
-        setupOrthographicProjection(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, NEAR,
+        setupOrthographicProjection(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane,
+                NEAR,
                 FAR);
 
         glTranslatef(0.0f, 0.0f, -100.0f);
@@ -170,7 +167,7 @@ public class Shaders {
         if (!ShaderPack.shaderPackLoaded) return;
         if (MINECRAFT.actualWidth != renderWidth || MINECRAFT.actualHeight != renderHeight)
             resize();
-        
+
         if (shadowEnabled) {
             // do shadow pass
             boolean preShadowPassThirdPersonView = MINECRAFT.options.thirdPerson;
@@ -228,7 +225,7 @@ public class Shaders {
         glDrawBuffers(defaultDrawBuffers);
 
         bindTextures();
-        GLUtils.drawQuad();
+        GLUtils.glDrawQuad();
 
         // final
 
@@ -236,11 +233,10 @@ public class Shaders {
 
         ShaderProgram.useShaderProgram(ShaderProgramType.FINAL);
 
-        glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GLUtils.glClearBuffer(clearColor[0], clearColor[1], clearColor[2], 1f);
 
         bindTextures();
-        GLUtils.drawQuad();
+        GLUtils.glDrawQuad();
 
         glEnable(GL_BLEND);
 
