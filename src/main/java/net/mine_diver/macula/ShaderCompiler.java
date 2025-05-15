@@ -44,7 +44,7 @@ public class ShaderCompiler {
     }
 
     static void vertPattern(String line) {
-        if (MC_ENTITY.matcher(line).matches()) Shaders.entityAttrib = 10;
+        if (MC_ENTITY.matcher(line).matches()) ShaderCore.entityAttrib = 10;
     }
 
     public static int createVertShader(String filename) {

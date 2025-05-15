@@ -2,13 +2,11 @@ package net.mine_diver.macula;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBShaderObjects;
+import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-
-import static org.lwjgl.opengl.EXTFramebufferObject.*;
-import static org.lwjgl.opengl.GL11.*;
 
 public class GLUtils {
     public static final String glVersionString = GL11.glGetString(GL11.GL_VERSION);
@@ -21,7 +19,7 @@ public class GLUtils {
             if (ShaderProgram.activeShaderProgram == ShaderProgramType.BASIC) ShaderProgram.useShaderProgram(
                     ShaderProgramType.TEXTURED);
         } else if (cap == GL11.GL_FOG) {
-            Shaders.fogEnabled = true;
+            ShaderCore.fogEnabled = true;
             ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram),
                     "fogMode", GL11.glGetInteger(GL11.GL_FOG_MODE));
         }
@@ -33,7 +31,7 @@ public class GLUtils {
             if (ShaderProgram.activeShaderProgram == ShaderProgramType.TEXTURED || ShaderProgram.activeShaderProgram == ShaderProgramType.TEXTURED_LIT)
                 ShaderProgram.useShaderProgram(ShaderProgramType.BASIC);
         } else if (cap == GL11.GL_FOG) {
-            Shaders.fogEnabled = false;
+            ShaderCore.fogEnabled = false;
             ShaderUniform.setProgramUniform1i(ShaderProgram.shaderProgramId.get(ShaderProgram.activeShaderProgram),
                     "fogMode", 0);
         }
@@ -89,19 +87,20 @@ public class GLUtils {
     }
 
     public static void glSetupOrthographicProjection(float left, float right, float bottom, float top, float near, float far) {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glLoadIdentity();
 
-        glOrtho(left, right, bottom, top, near, far);
+        GL11.glOrtho(left, right, bottom, top, near, far);
 
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glLoadIdentity();
     }
 
     public static int glCreateDepthBuffer(int width, int height) {
-        int depthBuffer = glGenRenderbuffersEXT();
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, width, height);
+        int depthBuffer = EXTFramebufferObject.glGenRenderbuffersEXT();
+        EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, depthBuffer);
+        EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL11.GL_DEPTH_COMPONENT,
+                width, height);
         return depthBuffer;
     }
 }

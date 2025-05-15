@@ -60,7 +60,7 @@ public class ShaderPack {
     public static void setShaderPack(String shaderPack) {
         currentShaderName = shaderPack;
         ShaderConfig.shadersConfig.setProperty(ShaderOption.SHADER_PACK.getPropertyKey(), shaderPack);
-        Shaders.isInitialized = false;
+        ShaderCore.isInitialized = false;
 
         Minecraft mcInstance = MinecraftInstance.get();
         if (mcInstance != null && mcInstance.player != null) {
@@ -71,8 +71,8 @@ public class ShaderPack {
     public static void loadShaderPack() {
         ShaderProgram.deleteShaders();
         ShaderUniform.clearUniformLocation();
-        Shaders.isInitialized = false;
-        Shaders.init();
+        ShaderCore.isInitialized = false;
+        ShaderCore.init();
         MinecraftInstance.get().worldRenderer.method_1537();
     }
 

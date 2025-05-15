@@ -1,7 +1,7 @@
 package net.mine_diver.macula.mixin;
 
 import net.mine_diver.macula.ShaderPack;
-import net.mine_diver.macula.Shaders;
+import net.mine_diver.macula.ShaderCore;
 import net.mine_diver.macula.VectorBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.sortme.GameRenderer;
@@ -18,7 +18,7 @@ public abstract class GameRendererMixin {
             at = @At("HEAD")
     )
     private void beginRender(float var1, long var2, CallbackInfo ci) {
-        Shaders.beginRender(minecraft, var1, var2);
+        ShaderCore.beginRender(minecraft, var1, var2);
     }
 
     @Inject(
@@ -27,7 +27,7 @@ public abstract class GameRendererMixin {
     )
     private void endRender(CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.endRender();
+        ShaderCore.endRender();
     }
 
     @Inject(
@@ -39,7 +39,7 @@ public abstract class GameRendererMixin {
     )
     private void setClearColor(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.setClearColor(field_2346, field_2347, field_2348);
+        ShaderCore.setClearColor(field_2346, field_2347, field_2348);
     }
 
     @Inject(
@@ -66,7 +66,7 @@ public abstract class GameRendererMixin {
     )
     private void injectTerrainBegin(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.beginTerrain();
+        ShaderCore.beginTerrain();
     }
 
 
@@ -81,7 +81,7 @@ public abstract class GameRendererMixin {
     )
     private void injectTerrainEnd(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.endTerrain();
+        ShaderCore.endTerrain();
     }
 
 
@@ -95,7 +95,7 @@ public abstract class GameRendererMixin {
     )
     private void injectWaterBegin1(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.beginWater();
+        ShaderCore.beginWater();
     }
 
 
@@ -110,7 +110,7 @@ public abstract class GameRendererMixin {
     )
     private void injectWaterEnd1(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.endWater();
+        ShaderCore.endWater();
     }
 
 
@@ -124,7 +124,7 @@ public abstract class GameRendererMixin {
     )
     private void injectWaterBegin2(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.beginWater();
+        ShaderCore.beginWater();
     }
 
 
@@ -139,7 +139,7 @@ public abstract class GameRendererMixin {
     )
     private void injectWaterEnd2(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.endWater();
+        ShaderCore.endWater();
     }
 
     @Inject(
@@ -151,7 +151,7 @@ public abstract class GameRendererMixin {
     )
     private void injectBeginWater3(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.beginWater();
+        ShaderCore.beginWater();
     }
 
     @Inject(
@@ -164,7 +164,7 @@ public abstract class GameRendererMixin {
     )
     private void injectEndWater3(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.endWater();
+        ShaderCore.endWater();
     }
 
     @Inject(
@@ -176,7 +176,7 @@ public abstract class GameRendererMixin {
     )
     private void injectBeginWeather(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.beginWeather();
+        ShaderCore.beginWeather();
     }
 
     @Inject(
@@ -189,7 +189,7 @@ public abstract class GameRendererMixin {
     )
     private void injectEndWeather(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.endWeather();
+        ShaderCore.endWeather();
     }
 
     @Inject(
@@ -201,7 +201,7 @@ public abstract class GameRendererMixin {
     )
     private void injectBeginHand(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.beginHand();
+        ShaderCore.beginHand();
     }
 
     @Inject(
@@ -214,7 +214,7 @@ public abstract class GameRendererMixin {
     )
     private void injectEndHand(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        Shaders.endHand();
+        ShaderCore.endHand();
     }
 
     @Shadow

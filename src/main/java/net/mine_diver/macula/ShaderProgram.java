@@ -42,7 +42,7 @@ public class ShaderProgram {
         }
     }
 
-    public static int createShaderProgram(String vertShaderPath, String fragShaderPath) {
+    private static int createShaderProgram(String vertShaderPath, String fragShaderPath) {
         int programId = ARBShaderObjects.glCreateProgramObjectARB();
 
         if (programId == NO_PROGRAM_ID) return NO_PROGRAM_ID;
@@ -53,8 +53,8 @@ public class ShaderProgram {
         if (vertShaderId != NO_PROGRAM_ID || fragShaderId != NO_PROGRAM_ID) {
             if (vertShaderId != NO_PROGRAM_ID) ARBShaderObjects.glAttachObjectARB(programId, vertShaderId);
             if (fragShaderId != NO_PROGRAM_ID) ARBShaderObjects.glAttachObjectARB(programId, fragShaderId);
-            if (Shaders.entityAttrib >= 0)
-                ARBVertexShader.glBindAttribLocationARB(programId, Shaders.entityAttrib, "mc_Entity");
+            if (ShaderCore.entityAttrib >= 0)
+                ARBVertexShader.glBindAttribLocationARB(programId, ShaderCore.entityAttrib, "mc_Entity");
             ARBShaderObjects.glLinkProgramARB(programId);
             ARBShaderObjects.glValidateProgramARB(programId);
             GLUtils.printLogInfo(programId);
@@ -118,18 +118,18 @@ public class ShaderProgram {
                 break;
         }
 
-        ItemInstance stack = Shaders.MINECRAFT.player.inventory.getHeldItem();
+        ItemInstance stack = ShaderCore.MINECRAFT.player.inventory.getHeldItem();
         ShaderUniform.setProgramUniform1i(programId, "heldItemId", (stack == null ? -1 : stack.itemId));
         ShaderUniform.setProgramUniform1i(programId, "heldBlockLightValue",
                 (stack == null || stack.itemId >= BlockBase.BY_ID.length ? 0 : BlockBase.EMITTANCE[stack.itemId]));
-        ShaderUniform.setProgramUniform1i(programId, "fogMode", (Shaders.fogEnabled ? GL11.glGetInteger(GL11.GL_FOG_MODE) : 0));
-        ShaderUniform.setProgramUniform1f(programId, "rainStrength", Shaders.rainStrength);
-        ShaderUniform.setProgramUniform1i(programId, "worldTime", (int) (Shaders.MINECRAFT.level.getLevelTime() % 24000L));
-        ShaderUniform.setProgramUniform1f(programId, "aspectRatio", (float) Shaders.renderWidth / (float) Shaders.renderHeight);
-        ShaderUniform.setProgramUniform1f(programId, "viewWidth", (float) Shaders.renderWidth);
-        ShaderUniform.setProgramUniform1f(programId, "viewHeight", (float) Shaders.renderHeight);
+        ShaderUniform.setProgramUniform1i(programId, "fogMode", (ShaderCore.fogEnabled ? GL11.glGetInteger(GL11.GL_FOG_MODE) : 0));
+        ShaderUniform.setProgramUniform1f(programId, "rainStrength", ShaderCore.rainStrength);
+        ShaderUniform.setProgramUniform1i(programId, "worldTime", (int) (ShaderCore.MINECRAFT.level.getLevelTime() % 24000L));
+        ShaderUniform.setProgramUniform1f(programId, "aspectRatio", (float) ShaderCore.renderWidth / (float) ShaderCore.renderHeight);
+        ShaderUniform.setProgramUniform1f(programId, "viewWidth", (float) ShaderCore.renderWidth);
+        ShaderUniform.setProgramUniform1f(programId, "viewHeight", (float) ShaderCore.renderHeight);
         ShaderUniform.setProgramUniform1f(programId, "near", 0.05F);
-        ShaderUniform.setProgramUniform1f(programId, "far", 256 >> Shaders.MINECRAFT.options.viewDistance);
+        ShaderUniform.setProgramUniform1f(programId, "far", 256 >> ShaderCore.MINECRAFT.options.viewDistance);
         ShaderUniform.setProgramUniform3f(programId, "sunPosition", VectorBuffer.sunPosition);
         ShaderUniform.setProgramUniform3f(programId, "moonPosition", VectorBuffer.moonPosition);
         ShaderUniform.setProgramUniform3f(programId, "previousCameraPosition", VectorBuffer.previousCameraPosition);

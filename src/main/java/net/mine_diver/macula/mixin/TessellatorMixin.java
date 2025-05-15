@@ -1,7 +1,7 @@
 package net.mine_diver.macula.mixin;
 
 import net.mine_diver.macula.ShaderPack;
-import net.mine_diver.macula.Shaders;
+import net.mine_diver.macula.ShaderCore;
 import net.mine_diver.macula.util.TessellatorAccessor;
 import net.minecraft.class_214;
 import net.minecraft.client.render.Tessellator;
@@ -49,9 +49,9 @@ public class TessellatorMixin implements TessellatorAccessor {
     )
     private void onDraw1(CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        if (Shaders.entityAttrib >= 0) {
-            ARBVertexProgram.glEnableVertexAttribArrayARB(Shaders.entityAttrib);
-            ARBVertexProgram.glVertexAttribPointerARB(Shaders.entityAttrib, 2, false, false, 4, shadersShortBuffer.position(0));
+        if (ShaderCore.entityAttrib >= 0) {
+            ARBVertexProgram.glEnableVertexAttribArrayARB(ShaderCore.entityAttrib);
+            ARBVertexProgram.glVertexAttribPointerARB(ShaderCore.entityAttrib, 2, false, false, 4, shadersShortBuffer.position(0));
         }
     }
 
@@ -65,8 +65,8 @@ public class TessellatorMixin implements TessellatorAccessor {
     )
     private void onDraw2(CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        if (Shaders.entityAttrib >= 0)
-            ARBVertexProgram.glDisableVertexAttribArrayARB(Shaders.entityAttrib);
+        if (ShaderCore.entityAttrib >= 0)
+            ARBVertexProgram.glDisableVertexAttribArrayARB(ShaderCore.entityAttrib);
     }
 
     @Inject(

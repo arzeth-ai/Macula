@@ -1,6 +1,5 @@
 package net.mine_diver.macula;
 
-import net.mine_diver.macula.util.MatrixUtil;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -29,7 +28,7 @@ public class ShadowBuffer {
 
         GL11.glTranslatef(0.0f, 0.0f, -100.0f);
         GL11.glRotatef(90.0f, 0.0f, 0.0f, -1.0f);
-        float angle = Shaders.MINECRAFT.level.method_198(f) * 360.0f;
+        float angle = ShaderCore.MINECRAFT.level.method_198(f) * 360.0f;
         // night time
         // day time
         if (angle < 90.0 || angle > 270.0) GL11.glRotatef(angle - 90.0f, -1.0f, 0.0f, 0.0f);

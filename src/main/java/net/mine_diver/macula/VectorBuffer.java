@@ -11,7 +11,7 @@ public class VectorBuffer {
     public static final float[] cameraPosition = new float[3];
 
     public static void updateCamera(float f) {
-        Living viewEntity = Shaders.MINECRAFT.viewEntity;
+        Living viewEntity = ShaderCore.MINECRAFT.viewEntity;
 
         float x = (float) (viewEntity.prevRenderX + (viewEntity.x - viewEntity.prevRenderX) * f);
         float y = (float) (viewEntity.prevRenderY + (viewEntity.y - viewEntity.prevRenderY) * f);
@@ -40,14 +40,13 @@ public class VectorBuffer {
     public static void updateCelestialPosition() {
         // This is called when the current matrix is the model view matrix based on the celestial angle
         // The sun is at (0, 100, 0); the moon at (0, -100, 0)
-
         MatrixBuffer.updateModelViewCelestial();
 
         float[] matrixMV = new float[16];
         MatrixBuffer.modelViewCelestial.get(0, matrixMV, 0, 16);
 
         // Equivalent to multiplying the matrix by (0, 100, 0, 0)
-        final float SUN_HEIGHT = 100.0F;
+        final float SUN_HEIGHT = 100f;
         sunPosition[0] = matrixMV[4] * SUN_HEIGHT;
         sunPosition[1] = matrixMV[5] * SUN_HEIGHT;
         sunPosition[2] = matrixMV[6] * SUN_HEIGHT;

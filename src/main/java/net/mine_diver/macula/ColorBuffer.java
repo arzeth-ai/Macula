@@ -33,10 +33,10 @@ public class ColorBuffer {
             // Depth buffer
             if (i == DEPTH_ATTACHMENT_INDEX) {
                 EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-                        ARBTextureFloat.GL_RGB32F_ARB, Shaders.renderWidth, Shaders.renderHeight);
+                        ARBTextureFloat.GL_RGB32F_ARB, ShaderCore.renderWidth, ShaderCore.renderHeight);
             } else {
                 EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL11.GL_RGBA,
-                        Shaders.renderWidth, Shaders.renderHeight);
+                        ShaderCore.renderWidth, ShaderCore.renderHeight);
             }
             EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
                     defaultDrawBuffers.get(i), EXTFramebufferObject.GL_RENDERBUFFER_EXT,
@@ -48,7 +48,7 @@ public class ColorBuffer {
 
         if (defaultDepthBuffer != 0)
             EXTFramebufferObject.glDeleteRenderbuffersEXT(defaultDepthBuffer);
-        defaultDepthBuffer = GLUtils.glCreateDepthBuffer(Shaders.renderWidth, Shaders.renderHeight);
+        defaultDepthBuffer = GLUtils.glCreateDepthBuffer(ShaderCore.renderWidth, ShaderCore.renderHeight);
 
         EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
                 EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT,
@@ -70,13 +70,13 @@ public class ColorBuffer {
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
             if (i == DEPTH_ATTACHMENT_INDEX) { // depth buffer
-                ByteBuffer buffer = ByteBuffer.allocateDirect(Shaders.renderWidth * Shaders.renderHeight * 4 * 4);
-                GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, ARBTextureFloat.GL_RGB32F_ARB, Shaders.renderWidth,
-                        Shaders.renderHeight, 0, GL11.GL_RGBA, GL11.GL_FLOAT,
+                ByteBuffer buffer = ByteBuffer.allocateDirect(ShaderCore.renderWidth * ShaderCore.renderHeight * 4 * 4);
+                GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, ARBTextureFloat.GL_RGB32F_ARB, ShaderCore.renderWidth,
+                        ShaderCore.renderHeight, 0, GL11.GL_RGBA, GL11.GL_FLOAT,
                         buffer);
             } else {
-                ByteBuffer buffer = ByteBuffer.allocateDirect(Shaders.renderWidth * Shaders.renderHeight * 4);
-                GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, Shaders.renderWidth, Shaders.renderHeight, 0,
+                ByteBuffer buffer = ByteBuffer.allocateDirect(ShaderCore.renderWidth * ShaderCore.renderHeight * 4);
+                GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, ShaderCore.renderWidth, ShaderCore.renderHeight, 0,
                         GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
                         buffer);
             }
