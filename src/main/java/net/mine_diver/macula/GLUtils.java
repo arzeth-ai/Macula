@@ -7,6 +7,9 @@ import org.lwjgl.opengl.GL11;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
+import static org.lwjgl.opengl.EXTFramebufferObject.*;
+import static org.lwjgl.opengl.GL11.*;
+
 public class GLUtils {
     public static final String glVersionString = GL11.glGetString(GL11.GL_VERSION);
     public static final String glVendorString = GL11.glGetString(GL11.GL_VENDOR);
@@ -83,5 +86,22 @@ public class GLUtils {
     static void glClearBuffer(float red, float green, float blue, float alpha) {
         GL11.glClearColor(red, green, blue, alpha);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+    }
+
+    public static void glSetupOrthographicProjection(float left, float right, float bottom, float top, float near, float far) {
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        glOrtho(left, right, bottom, top, near, far);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+    }
+
+    public static int glCreateDepthBuffer(int width, int height) {
+        int depthBuffer = glGenRenderbuffersEXT();
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, width, height);
+        return depthBuffer;
     }
 }

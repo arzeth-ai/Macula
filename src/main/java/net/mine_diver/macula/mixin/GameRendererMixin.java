@@ -52,7 +52,7 @@ public abstract class GameRendererMixin {
     )
     private void setCamera(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        VectorBuffer.setCamera(l);
+        VectorBuffer.updateCamera(l);
     }
 
 

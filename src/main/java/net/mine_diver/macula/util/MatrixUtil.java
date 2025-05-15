@@ -9,7 +9,7 @@ public class MatrixUtil {
      * Efficient 4x4 matrix inverse, ~50% fewer operations than the standard approach.
      * Based on: https://stackoverflow.com/questions/2624422/efficient-4x4-matrix-inverse-affine-transform
      */
-    public static void invertMat4(FloatBuffer matrixBuffer, FloatBuffer inverse) {
+    public static void invMat4(FloatBuffer matrixBuffer, FloatBuffer inverseMatrixBuffer) {
         float[] matrix = new float[16];
         matrixBuffer.get(0, matrix, 0, 16);
 
@@ -30,31 +30,31 @@ public class MatrixUtil {
         float det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0;
 
         // Handle non-invertible matrix
-        if (det == 0.0f) {
-            BufferUtils.zeroBuffer(inverse); // Return zero matrix
+        if (det == 0f) {
+            BufferUtils.zeroBuffer(inverseMatrixBuffer); // Return zero matrix
             return;
         }
 
-        float invDet = 1.0f / det;
+        float invDet = 1f / det;
 
-        inverse.put(0, (matrix[5] * c5 - matrix[6] * c4 + matrix[7] * c3) * invDet);
-        inverse.put(1, (-matrix[1] * c5 + matrix[2] * c4 - matrix[3] * c3) * invDet);
-        inverse.put(2, (matrix[13] * s5 - matrix[14] * s4 + matrix[15] * s3) * invDet);
-        inverse.put(3, (-matrix[9] * s5 + matrix[10] * s4 - matrix[11] * s3) * invDet);
+        inverseMatrixBuffer.put(0, (matrix[5] * c5 - matrix[6] * c4 + matrix[7] * c3) * invDet);
+        inverseMatrixBuffer.put(1, (-matrix[1] * c5 + matrix[2] * c4 - matrix[3] * c3) * invDet);
+        inverseMatrixBuffer.put(2, (matrix[13] * s5 - matrix[14] * s4 + matrix[15] * s3) * invDet);
+        inverseMatrixBuffer.put(3, (-matrix[9] * s5 + matrix[10] * s4 - matrix[11] * s3) * invDet);
 
-        inverse.put(4, (-matrix[4] * c5 + matrix[6] * c2 - matrix[7] * c1) * invDet);
-        inverse.put(5, (matrix[0] * c5 - matrix[2] * c2 + matrix[3] * c1) * invDet);
-        inverse.put(6, (-matrix[12] * s5 + matrix[14] * s2 - matrix[15] * s1) * invDet);
-        inverse.put(7, (matrix[8] * s5 - matrix[10] * s2 + matrix[11] * s1) * invDet);
+        inverseMatrixBuffer.put(4, (-matrix[4] * c5 + matrix[6] * c2 - matrix[7] * c1) * invDet);
+        inverseMatrixBuffer.put(5, (matrix[0] * c5 - matrix[2] * c2 + matrix[3] * c1) * invDet);
+        inverseMatrixBuffer.put(6, (-matrix[12] * s5 + matrix[14] * s2 - matrix[15] * s1) * invDet);
+        inverseMatrixBuffer.put(7, (matrix[8] * s5 - matrix[10] * s2 + matrix[11] * s1) * invDet);
 
-        inverse.put(8, (matrix[4] * c4 - matrix[5] * c2 + matrix[7] * c0) * invDet);
-        inverse.put(9, (-matrix[0] * c4 + matrix[1] * c2 - matrix[3] * c0) * invDet);
-        inverse.put(10, (matrix[12] * s4 - matrix[13] * s2 + matrix[15] * s0) * invDet);
-        inverse.put(11, (-matrix[8] * s4 + matrix[9] * s2 - matrix[11] * s0) * invDet);
+        inverseMatrixBuffer.put(8, (matrix[4] * c4 - matrix[5] * c2 + matrix[7] * c0) * invDet);
+        inverseMatrixBuffer.put(9, (-matrix[0] * c4 + matrix[1] * c2 - matrix[3] * c0) * invDet);
+        inverseMatrixBuffer.put(10, (matrix[12] * s4 - matrix[13] * s2 + matrix[15] * s0) * invDet);
+        inverseMatrixBuffer.put(11, (-matrix[8] * s4 + matrix[9] * s2 - matrix[11] * s0) * invDet);
 
-        inverse.put(12, (-matrix[4] * c3 + matrix[5] * c1 - matrix[6] * c0) * invDet);
-        inverse.put(13, (matrix[0] * c3 - matrix[1] * c1 + matrix[2] * c0) * invDet);
-        inverse.put(14, (-matrix[12] * s3 + matrix[13] * s1 - matrix[14] * s0) * invDet);
-        inverse.put(15, (matrix[8] * s3 - matrix[9] * s1 + matrix[10] * s0) * invDet);
+        inverseMatrixBuffer.put(12, (-matrix[4] * c3 + matrix[5] * c1 - matrix[6] * c0) * invDet);
+        inverseMatrixBuffer.put(13, (matrix[0] * c3 - matrix[1] * c1 + matrix[2] * c0) * invDet);
+        inverseMatrixBuffer.put(14, (-matrix[12] * s3 + matrix[13] * s1 - matrix[14] * s0) * invDet);
+        inverseMatrixBuffer.put(15, (matrix[8] * s3 - matrix[9] * s1 + matrix[10] * s0) * invDet);
     }
 }

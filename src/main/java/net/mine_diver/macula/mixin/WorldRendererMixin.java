@@ -23,7 +23,7 @@ public class WorldRendererMixin {
     )
     private void onGetStarBrightness(float par1, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        VectorBuffer.setCelestialPosition();
+        VectorBuffer.updateCelestialPosition();
     }
 
     @Redirect(

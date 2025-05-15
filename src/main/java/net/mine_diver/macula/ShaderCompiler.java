@@ -52,23 +52,23 @@ public class ShaderCompiler {
     }
 
     static void fragPattern(String line) {
-        if (Shaders.colorAttachments < 5 && PATTERN_GAUX1.matcher(line).matches()) Shaders.colorAttachments = 5;
-        else if (Shaders.colorAttachments < 6 && PATTERN_GAUX2.matcher(line).matches())
-            Shaders.colorAttachments = 6;
-        else if (Shaders.colorAttachments < 7 && PATTERN_GAUX3.matcher(line).matches())
-            Shaders.colorAttachments = 7;
-        else if (Shaders.colorAttachments < 8 && PATTERN_SHADOW.matcher(line).matches()) {
-            Shaders.shadowEnabled = true;
-            Shaders.colorAttachments = 8;
+        if (ColorBuffer.colorAttachments < 5 && PATTERN_GAUX1.matcher(line).matches()) ColorBuffer.colorAttachments = 5;
+        else if (ColorBuffer.colorAttachments < 6 && PATTERN_GAUX2.matcher(line).matches())
+            ColorBuffer.colorAttachments = 6;
+        else if (ColorBuffer.colorAttachments < 7 && PATTERN_GAUX3.matcher(line).matches())
+            ColorBuffer.colorAttachments = 7;
+        else if (ColorBuffer.colorAttachments < 8 && PATTERN_SHADOW.matcher(line).matches()) {
+            ShadowBuffer.shadowEnabled = true;
+            ColorBuffer.colorAttachments = 8;
         } else if (PATTERN_SHADOWRES.matcher(line).matches()) {
             String[] parts = SPLIT_PATTERN.split(line, 4);
-            Shaders.shadowResolution = Math.round(
+            ShadowBuffer.shadowResolution = Math.round(
                     Integer.parseInt(parts[2]) * ShaderConfig.configShadowResMul);
-            System.out.println("Shadow map resolution: " + Shaders.shadowResolution);
+            System.out.println("Shadow map resolution: " + ShadowBuffer.shadowResolution);
         } else if (PATTERN_SHADOWHPL.matcher(line).matches()) {
             String[] parts = SPLIT_PATTERN.split(line, 4);
             System.out.println("Shadow map half-plane: " + parts[2]);
-            Shaders.shadowMapHalfPlane = Float.parseFloat(parts[2]);
+            ShadowBuffer.shadowMapHalfPlane = Float.parseFloat(parts[2]);
         }
     }
 
