@@ -2,7 +2,7 @@ package net.mine_diver.macula.mixin;
 
 import net.mine_diver.macula.ShaderPack;
 import net.mine_diver.macula.ShaderCore;
-import net.mine_diver.macula.VectorBuffer;
+import net.mine_diver.macula.PositionBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.sortme.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -52,7 +52,7 @@ public abstract class GameRendererMixin {
     )
     private void setCamera(float l, long par2, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        VectorBuffer.updateCamera(l);
+        PositionBuffer.updateCamera(l);
     }
 
 

@@ -2,7 +2,7 @@ package net.mine_diver.macula.mixin;
 
 import net.mine_diver.macula.GLUtils;
 import net.mine_diver.macula.ShaderPack;
-import net.mine_diver.macula.VectorBuffer;
+import net.mine_diver.macula.PositionBuffer;
 import net.minecraft.client.render.WorldRenderer;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,7 +23,7 @@ public class WorldRendererMixin {
     )
     private void onGetStarBrightness(float par1, CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        VectorBuffer.updateCelestialPosition();
+        PositionBuffer.updateCelestialPosition();
     }
 
     @Redirect(

@@ -37,8 +37,6 @@ public class ShaderCore {
     public static void init() {
         if (!(ShaderPack.shaderPackLoaded = !ShaderPack.currentShaderName.equals(ShaderPack.SHADER_DISABLED))) return;
 
-        MatrixBuffer.initMatrixBuffer();
-
         int maxDrawBuffers = GL11.glGetInteger(GL20.GL_MAX_DRAW_BUFFERS);
 
         System.out.println("GL_MAX_DRAW_BUFFERS = " + maxDrawBuffers);
@@ -59,7 +57,7 @@ public class ShaderCore {
         ColorBuffer.defaultRenderBuffers = BufferUtils.createIntBuffer(ColorBuffer.colorAttachments);
 
         resize();
-        ShadowBuffer.setupShadowFrameBuffer();
+        ShadowMap.initializeShadowMap();
         isInitialized = true;
     }
 
@@ -68,7 +66,7 @@ public class ShaderCore {
         clearColor[1] = green;
         clearColor[2] = blue;
 
-        if (ShadowBuffer.isShadowPass) {
+        if (ShadowMap.isShadowPass) {
             GLUtils.glClearBuffer(clearColor[0], clearColor[1], clearColor[2], 1f);
             return;
         }
@@ -95,27 +93,27 @@ public class ShaderCore {
     public static void beginRender(Minecraft minecraft, float f, long l) {
         rainStrength = minecraft.level.getRainGradient(f);
 
-        if (ShadowBuffer.isShadowPass) return;
+        if (ShadowMap.isShadowPass) return;
 
         if (!isInitialized) init();
         if (!ShaderPack.shaderPackLoaded) return;
         if (MINECRAFT.actualWidth != renderWidth || MINECRAFT.actualHeight != renderHeight)
             resize();
 
-        if (ShadowBuffer.shadowEnabled) {
+        if (ShadowMap.shadowEnabled) {
             // do shadow pass
             boolean preShadowPassThirdPersonView = MINECRAFT.options.thirdPerson;
             MINECRAFT.options.thirdPerson = true;
 
-            ShadowBuffer.isShadowPass = true;
+            ShadowMap.isShadowPass = true;
 
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                    ShadowBuffer.shadowFramebuffer);
+                    ShadowMap.shadowFramebufferId);
             ShaderProgram.useShaderProgram(ShaderProgramType.NONE);
             MINECRAFT.gameRenderer.delta(f, l);
             GL11.glFlush();
 
-            ShadowBuffer.isShadowPass = false;
+            ShadowMap.isShadowPass = false;
             MINECRAFT.options.thirdPerson = preShadowPassThirdPersonView;
         }
 
@@ -126,7 +124,7 @@ public class ShaderCore {
     }
 
     public static void endRender() {
-        if (ShadowBuffer.isShadowPass) return;
+        if (ShadowMap.isShadowPass) return;
 
         GL11.glPushMatrix();
 
@@ -190,16 +188,16 @@ public class ShaderCore {
         GL11.glDisable(GL11.GL_BLEND);
         ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
 
-        if (ShadowBuffer.isShadowPass)
+        if (ShadowMap.isShadowPass)
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                    ShadowBuffer.shadowFramebuffer); // was set to 0 in beginWeather()
+                    ShadowMap.shadowFramebufferId); // was set to 0 in beginWeather()
     }
 
     public static void beginWeather() {
         GL11.glEnable(GL11.GL_BLEND);
         ShaderProgram.useShaderProgram(ShaderProgramType.WEATHER);
 
-        if (ShadowBuffer.isShadowPass)
+        if (ShadowMap.isShadowPass)
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
                     0); // will be set to sbf in endHand()
     }
@@ -215,9 +213,9 @@ public class ShaderCore {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, ColorBuffer.defaultTextures.get(i));
         }
 
-        if (ShadowBuffer.shadowEnabled) {
+        if (ShadowMap.shadowEnabled) {
             GL13.glActiveTexture(GL13.GL_TEXTURE7);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, ShadowBuffer.shadowDepthTexture);
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, ShadowMap.shadowDepthTextureId);
         }
 
         GL13.glActiveTexture(GL13.GL_TEXTURE0);

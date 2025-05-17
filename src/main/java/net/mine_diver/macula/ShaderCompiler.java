@@ -58,17 +58,17 @@ public class ShaderCompiler {
         else if (ColorBuffer.colorAttachments < 7 && PATTERN_GAUX3.matcher(line).matches())
             ColorBuffer.colorAttachments = 7;
         else if (ColorBuffer.colorAttachments < 8 && PATTERN_SHADOW.matcher(line).matches()) {
-            ShadowBuffer.shadowEnabled = true;
+            ShadowMap.shadowEnabled = true;
             ColorBuffer.colorAttachments = 8;
         } else if (PATTERN_SHADOWRES.matcher(line).matches()) {
             String[] parts = SPLIT_PATTERN.split(line, 4);
-            ShadowBuffer.shadowResolution = Math.round(
+            ShadowMap.shadowResolution = Math.round(
                     Integer.parseInt(parts[2]) * ShaderConfig.configShadowResMul);
-            System.out.println("Shadow map resolution: " + ShadowBuffer.shadowResolution);
+            System.out.println("Shadow map resolution: " + ShadowMap.shadowResolution);
         } else if (PATTERN_SHADOWHPL.matcher(line).matches()) {
             String[] parts = SPLIT_PATTERN.split(line, 4);
             System.out.println("Shadow map half-plane: " + parts[2]);
-            ShadowBuffer.shadowMapHalfPlane = Float.parseFloat(parts[2]);
+            ShadowMap.shadowMapHalfPlane = Float.parseFloat(parts[2]);
         }
     }
 

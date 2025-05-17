@@ -1,5 +1,8 @@
 package net.mine_diver.macula;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBShaderObjects;
 
 import java.nio.FloatBuffer;
@@ -7,7 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ShaderUniform {
+    private static final int MATRIX_SIZE = 16;
+    private static final boolean TRANSPOSE = false;
+
     private static final Map<Integer, Integer> uniformLocationCache = new HashMap<>();
+
+    private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(MATRIX_SIZE);
 
     static int getUniformLocation(int programId, String name) {
         int nameHash = name.hashCode() & 0xFFFF;
@@ -27,15 +35,20 @@ public class ShaderUniform {
         if (uniform != -1) ARBShaderObjects.glUniform1fARB(uniform, x);
     }
 
-    public static void setProgramUniform3f(int programId, String name, float[] vec3) {
+    public static void setProgramUniform3f(int programId, String name, Vector3f vec3) {
         int uniform = getUniformLocation(programId, name);
-        if (uniform != -1) ARBShaderObjects.glUniform3fARB(uniform, vec3[0], vec3[1], vec3[2]);
+        if (uniform != -1) ARBShaderObjects.glUniform3fARB(uniform, vec3.x, vec3.y, vec3.z);
     }
 
-    public static void setProgramUniformMatrix4(int programId, String name, FloatBuffer mat4) {
+    public static void setProgramUniformMatrix4(int programId, String name, Matrix4f mat4) {
         int uniform = getUniformLocation(programId, name);
-        final boolean TRANSPOSE = false;
-        if (uniform != -1) ARBShaderObjects.glUniformMatrix4ARB(uniform, TRANSPOSE, mat4);
+
+        if (uniform == -1) return;
+
+        matrixBuffer.clear();
+        mat4.get(matrixBuffer);
+
+        ARBShaderObjects.glUniformMatrix4ARB(uniform, TRANSPOSE, matrixBuffer);
     }
 
     public static void clearUniformLocation() {

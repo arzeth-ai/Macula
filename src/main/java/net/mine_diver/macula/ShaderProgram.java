@@ -68,7 +68,7 @@ public class ShaderProgram {
 
     public static void useShaderProgram(ShaderProgramType shaderProgramType) {
         if (activeShaderProgram == shaderProgramType) return;
-        if (ShadowBuffer.isShadowPass) {
+        if (ShadowMap.isShadowPass) {
             activeShaderProgram = ShaderProgramType.NONE;
             ARBShaderObjects.glUseProgramObjectARB(shaderProgramId.get(ShaderProgramType.NONE));
             return;
@@ -109,7 +109,7 @@ public class ShaderProgram {
                 ShaderUniform.setProgramUniformMatrix4(programId, "gbufferProjection", MatrixBuffer.projection);
                 ShaderUniform.setProgramUniformMatrix4(programId, "gbufferProjectionInverse", MatrixBuffer.projectionInverse);
                 ShaderUniform.setProgramUniformMatrix4(programId, "gbufferPreviousModelView", MatrixBuffer.previousModelView);
-                if (ShadowBuffer.shadowEnabled) {
+                if (ShadowMap.shadowEnabled) {
                     ShaderUniform.setProgramUniformMatrix4(programId, "shadowProjection", MatrixBuffer.shadowProjection);
                     ShaderUniform.setProgramUniformMatrix4(programId, "shadowProjectionInverse", MatrixBuffer.shadowProjectionInverse);
                     ShaderUniform.setProgramUniformMatrix4(programId, "shadowModelView", MatrixBuffer.shadowModelView);
@@ -130,10 +130,10 @@ public class ShaderProgram {
         ShaderUniform.setProgramUniform1f(programId, "viewHeight", (float) ShaderCore.renderHeight);
         ShaderUniform.setProgramUniform1f(programId, "near", 0.05F);
         ShaderUniform.setProgramUniform1f(programId, "far", 256 >> ShaderCore.MINECRAFT.options.viewDistance);
-        ShaderUniform.setProgramUniform3f(programId, "sunPosition", VectorBuffer.sunPosition);
-        ShaderUniform.setProgramUniform3f(programId, "moonPosition", VectorBuffer.moonPosition);
-        ShaderUniform.setProgramUniform3f(programId, "previousCameraPosition", VectorBuffer.previousCameraPosition);
-        ShaderUniform.setProgramUniform3f(programId, "cameraPosition", VectorBuffer.cameraPosition);
+        ShaderUniform.setProgramUniform3f(programId, "sunPosition", PositionBuffer.sunPosition);
+        ShaderUniform.setProgramUniform3f(programId, "moonPosition", PositionBuffer.moonPosition);
+        ShaderUniform.setProgramUniform3f(programId, "previousCameraPosition", PositionBuffer.previousCameraPosition);
+        ShaderUniform.setProgramUniform3f(programId, "cameraPosition", PositionBuffer.cameraPosition);
         ShaderUniform.setProgramUniformMatrix4(programId, "gbufferModelView", MatrixBuffer.modelView);
         ShaderUniform.setProgramUniformMatrix4(programId, "gbufferModelViewInverse", MatrixBuffer.modelViewInverse);
     }
