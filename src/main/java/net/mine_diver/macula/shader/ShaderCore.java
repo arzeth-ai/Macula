@@ -10,7 +10,7 @@ import net.mine_diver.macula.util.GLUtils;
 import net.mine_diver.macula.util.MinecraftInstance;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -57,7 +57,7 @@ public class ShaderCore {
 
         Framebuffer.defaultDrawBuffers = BufferUtils.createIntBuffer(Framebuffer.colorAttachments);
         for (int i = 0; i < Framebuffer.colorAttachments; ++i)
-            Framebuffer.defaultDrawBuffers.put(i, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + i);
+            Framebuffer.defaultDrawBuffers.put(i, ARBFramebufferObject.GL_COLOR_ATTACHMENT0 + i);
 
         Framebuffer.defaultTextures = BufferUtils.createIntBuffer(Framebuffer.colorAttachments);
         Framebuffer.defaultRenderBuffers = BufferUtils.createIntBuffer(Framebuffer.colorAttachments);
@@ -80,10 +80,10 @@ public class ShaderCore {
         GL20.glDrawBuffers(Framebuffer.defaultDrawBuffers);
         GLUtils.glClearBuffer(0f, 0f, 0f, 0f);
 
-        GL20.glDrawBuffers(EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT);
+        GL20.glDrawBuffers(ARBFramebufferObject.GL_COLOR_ATTACHMENT0);
         GLUtils.glClearBuffer(clearColor[0], clearColor[1], clearColor[2], 1f);
 
-        GL20.glDrawBuffers(EXTFramebufferObject.GL_COLOR_ATTACHMENT1_EXT);
+        GL20.glDrawBuffers(ARBFramebufferObject.GL_COLOR_ATTACHMENT1);
         GLUtils.glClearBuffer(1f, 1f, 1f, 1f);
 
         GL20.glDrawBuffers(Framebuffer.defaultDrawBuffers);
@@ -116,7 +116,7 @@ public class ShaderCore {
 
             ShadowMap.isShadowPass = true;
 
-            EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+            ARBFramebufferObject.glBindFramebuffer(ARBFramebufferObject.GL_FRAMEBUFFER,
                     ShadowMap.shadowFramebufferId);
             ShaderProgram.useShaderProgram(ShaderProgramType.NONE);
             MINECRAFT.gameRenderer.delta(f, l);
@@ -126,7 +126,7 @@ public class ShaderCore {
             MINECRAFT.options.thirdPerson = preShadowPassThirdPersonView;
         }
 
-        EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+        ARBFramebufferObject.glBindFramebuffer(ARBFramebufferObject.GL_FRAMEBUFFER,
                 Framebuffer.defaultFramebufferId);
 
         ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
@@ -155,7 +155,7 @@ public class ShaderCore {
 
         // final
 
-        EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
+        ARBFramebufferObject.glBindFramebuffer(ARBFramebufferObject.GL_FRAMEBUFFER, 0);
 
         ShaderProgram.useShaderProgram(ShaderProgramType.FINAL);
 
@@ -198,7 +198,7 @@ public class ShaderCore {
         ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
 
         if (ShadowMap.isShadowPass)
-            EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+            ARBFramebufferObject.glBindFramebuffer(ARBFramebufferObject.GL_FRAMEBUFFER,
                     ShadowMap.shadowFramebufferId); // was set to 0 in beginWeather()
     }
 
@@ -207,7 +207,7 @@ public class ShaderCore {
         ShaderProgram.useShaderProgram(ShaderProgramType.WEATHER);
 
         if (ShadowMap.isShadowPass)
-            EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+            ARBFramebufferObject.glBindFramebuffer(ARBFramebufferObject.GL_FRAMEBUFFER,
                     0); // will be set to sbf in endHand()
     }
 

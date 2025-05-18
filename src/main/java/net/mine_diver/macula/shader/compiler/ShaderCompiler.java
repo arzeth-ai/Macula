@@ -6,9 +6,7 @@ import net.mine_diver.macula.option.ShaderConfig;
 import net.mine_diver.macula.shader.ShaderCore;
 import net.mine_diver.macula.ShaderPack;
 import net.mine_diver.macula.shader.ShadowMap;
-import org.lwjgl.opengl.ARBFragmentShader;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.ARBVertexShader;
+import org.lwjgl.opengl.GL20;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,7 +25,7 @@ public class ShaderCompiler {
     static final Pattern SPLIT_PATTERN = Pattern.compile("[: ]");
 
     static int createShader(int shaderType, String filename, Consumer<String> lineProcessor) {
-        int shader = ARBShaderObjects.glCreateShaderObjectARB(shaderType);
+        int shader = GL20.glCreateShader(shaderType);
         if (shader == 0) return 0;
 
         StringBuilder shaderCode = new StringBuilder();
@@ -39,12 +37,12 @@ public class ShaderCompiler {
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            ARBShaderObjects.glDeleteObjectARB(shader);
+            GL20.glDeleteShader(shader);
             return 0;
         }
 
-        ARBShaderObjects.glShaderSourceARB(shader, shaderCode.toString());
-        ARBShaderObjects.glCompileShaderARB(shader);
+        GL20.glShaderSource(shader, shaderCode.toString());
+        GL20.glCompileShader(shader);
         GLUtils.printLogInfo(shader);
         return shader;
     }
@@ -54,7 +52,7 @@ public class ShaderCompiler {
     }
 
     public static int createVertShader(String filename) {
-        return createShader(ARBVertexShader.GL_VERTEX_SHADER_ARB, filename, ShaderCompiler::vertPattern);
+        return createShader(GL20.GL_VERTEX_SHADER, filename, ShaderCompiler::vertPattern);
     }
 
     static void fragPattern(String line) {
@@ -79,6 +77,6 @@ public class ShaderCompiler {
     }
 
     public static int createFragShader(String filename) {
-        return createShader(ARBFragmentShader.GL_FRAGMENT_SHADER_ARB, filename, ShaderCompiler::fragPattern);
+        return createShader(GL20.GL_FRAGMENT_SHADER, filename, ShaderCompiler::fragPattern);
     }
 }

@@ -4,7 +4,7 @@ import net.mine_diver.macula.shader.program.Uniform;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBShaderObjects;
+import org.lwjgl.opengl.GL20;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -22,22 +22,22 @@ public class UniformUtils {
         int key = (programId << 16) | uniform.ordinal();
 
         return uniformLocationCache.computeIfAbsent(key,
-                k -> ARBShaderObjects.glGetUniformLocationARB(programId, uniform.getName()));
+                k -> GL20.glGetUniformLocation(programId, uniform.getName()));
     }
 
     public static void setProgramUniform1i(int programId, Uniform uniform, int n) {
         int location = getUniformLocation(programId, uniform);
-        if (location != -1) ARBShaderObjects.glUniform1iARB(location, n);
+        if (location != -1) GL20.glUniform1i(location, n);
     }
 
     public static void setProgramUniform1f(int programId, Uniform uniform, float x) {
         int location = getUniformLocation(programId, uniform);
-        if (location != -1) ARBShaderObjects.glUniform1fARB(location, x);
+        if (location != -1) GL20.glUniform1f(location, x);
     }
 
     public static void setProgramUniform3f(int programId, Uniform uniform, Vector3f vec3) {
         int location = getUniformLocation(programId, uniform);
-        if (location != -1) ARBShaderObjects.glUniform3fARB(location, vec3.x, vec3.y, vec3.z);
+        if (location != -1) GL20.glUniform3f(location, vec3.x, vec3.y, vec3.z);
     }
 
     public static void setProgramUniformMatrix4(int programId, Uniform uniform, Matrix4f mat4) {
@@ -48,7 +48,7 @@ public class UniformUtils {
         matrixBuffer.clear();
         mat4.get(matrixBuffer);
 
-        ARBShaderObjects.glUniformMatrix4ARB(location, TRANSPOSE, matrixBuffer);
+       GL20.glUniformMatrix4(location, TRANSPOSE, matrixBuffer);
     }
 
     public static void clearUniformLocation() {

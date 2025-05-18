@@ -5,7 +5,7 @@ import org.joml.Vector3f;
 
 import java.nio.ByteBuffer;
 
-import static org.lwjgl.opengl.EXTFramebufferObject.*;
+import static org.lwjgl.opengl.ARBFramebufferObject.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER;
 
@@ -58,27 +58,27 @@ public class ShadowMap {
 
         createShadowDepthTexture();
 
-        int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-        if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE)
             System.err.println("Failed creating shadow framebuffer! (Status " + status + ")");
     }
 
     private static void createShadowFramebuffer() {
-        if (shadowFramebufferId != 0) glDeleteFramebuffersEXT(shadowFramebufferId);
+        if (shadowFramebufferId != 0) glDeleteFramebuffers(shadowFramebufferId);
 
-        shadowFramebufferId = glGenFramebuffersEXT();
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, shadowFramebufferId);
+        shadowFramebufferId = glGenFramebuffers();
+        glBindFramebuffer(GL_FRAMEBUFFER, shadowFramebufferId);
 
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
     }
 
     private static void createShadowDepthBuffer() {
-        if (shadowDepthBufferId != 0) glDeleteRenderbuffersEXT(shadowDepthBufferId);
+        if (shadowDepthBufferId != 0) glDeleteFramebuffers(shadowDepthBufferId);
 
         shadowDepthBufferId = GLUtils.glCreateDepthBuffer(shadowResolution, shadowResolution);
 
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, shadowDepthBufferId);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, shadowDepthBufferId);
     }
 
     private static void createShadowDepthTexture() {
@@ -101,6 +101,6 @@ public class ShadowMap {
                 GL_DEPTH_COMPONENT,
                 GL_FLOAT, shadowMapBuffer);
 
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, shadowDepthTextureId, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTextureId, 0);
     }
 }

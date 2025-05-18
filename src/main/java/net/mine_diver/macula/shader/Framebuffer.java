@@ -2,7 +2,7 @@ package net.mine_diver.macula.shader;
 
 import net.mine_diver.macula.util.GLUtils;
 import org.lwjgl.opengl.ARBTextureFloat;
-import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
@@ -22,44 +22,44 @@ public class Framebuffer {
 
     public static void setupFrameBuffer() {
         if (defaultFramebufferId != 0) {
-            EXTFramebufferObject.glDeleteFramebuffersEXT(defaultFramebufferId);
-            EXTFramebufferObject.glDeleteRenderbuffersEXT(defaultRenderBuffers);
+            ARBFramebufferObject.glDeleteFramebuffers(defaultFramebufferId);
+            ARBFramebufferObject.glDeleteRenderbuffers(defaultRenderBuffers);
         }
 
-        defaultFramebufferId = EXTFramebufferObject.glGenFramebuffersEXT();
-        EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, defaultFramebufferId);
+        defaultFramebufferId = ARBFramebufferObject.glGenFramebuffers();
+        ARBFramebufferObject.glBindFramebuffer(ARBFramebufferObject.GL_FRAMEBUFFER, defaultFramebufferId);
 
-        EXTFramebufferObject.glGenRenderbuffersEXT(defaultRenderBuffers);
+        ARBFramebufferObject.glGenRenderbuffers(defaultRenderBuffers);
 
         for (int i = 0; i < colorAttachments; ++i) {
-            EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+            ARBFramebufferObject.glBindRenderbuffer(ARBFramebufferObject.GL_RENDERBUFFER,
                     defaultRenderBuffers.get(i));
             // Depth buffer
             if (i == DEPTH_ATTACHMENT_INDEX) {
-                EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+                ARBFramebufferObject.glRenderbufferStorage(ARBFramebufferObject.GL_RENDERBUFFER,
                         ARBTextureFloat.GL_RGB32F_ARB, ShaderCore.renderWidth, ShaderCore.renderHeight);
             } else {
-                EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL11.GL_RGBA,
+                ARBFramebufferObject.glRenderbufferStorage(ARBFramebufferObject.GL_RENDERBUFFER, GL11.GL_RGBA,
                         ShaderCore.renderWidth, ShaderCore.renderHeight);
             }
-            EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                    defaultDrawBuffers.get(i), EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+            ARBFramebufferObject.glFramebufferRenderbuffer(ARBFramebufferObject.GL_FRAMEBUFFER,
+                    defaultDrawBuffers.get(i), ARBFramebufferObject.GL_RENDERBUFFER,
                     defaultRenderBuffers.get(i));
-            EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+            ARBFramebufferObject.glFramebufferTexture2D(ARBFramebufferObject.GL_FRAMEBUFFER,
                     defaultDrawBuffers.get(i), GL11.GL_TEXTURE_2D,
                     defaultTextures.get(i), 0);
         }
 
         if (defaultDepthBufferId != 0)
-            EXTFramebufferObject.glDeleteRenderbuffersEXT(defaultDepthBufferId);
+            ARBFramebufferObject.glDeleteRenderbuffers(defaultDepthBufferId);
         defaultDepthBufferId = GLUtils.glCreateDepthBuffer(ShaderCore.renderWidth, ShaderCore.renderHeight);
 
-        EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+        ARBFramebufferObject.glFramebufferRenderbuffer(ARBFramebufferObject.GL_FRAMEBUFFER,
+                ARBFramebufferObject.GL_DEPTH_ATTACHMENT, ARBFramebufferObject.GL_RENDERBUFFER,
                 defaultDepthBufferId);
 
-        int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
-        if (status != EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT)
+        int status = ARBFramebufferObject.glCheckFramebufferStatus(ARBFramebufferObject.GL_FRAMEBUFFER);
+        if (status != ARBFramebufferObject.GL_FRAMEBUFFER_COMPLETE)
             System.err.println("Failed creating framebuffer! (Status " + status + ")");
     }
 

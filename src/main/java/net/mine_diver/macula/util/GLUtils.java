@@ -4,13 +4,9 @@ import net.mine_diver.macula.shader.ShaderCore;
 import net.mine_diver.macula.shader.program.ShaderProgram;
 import net.mine_diver.macula.shader.program.ShaderProgramType;
 import net.mine_diver.macula.shader.program.Uniform;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.GL11;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
+import org.lwjgl.opengl.GL20;
 
 public class GLUtils {
     public static final String glVersionString = GL11.glGetString(GL11.GL_VERSION);
@@ -67,19 +63,14 @@ public class GLUtils {
         GL11.glEnd();
     }
 
-    public static boolean printLogInfo(int obj) {
-        IntBuffer iVal = BufferUtils.createIntBuffer(1);
-        ARBShaderObjects.glGetObjectParameterARB(obj, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB, iVal);
+    public static boolean printLogInfo(int program) {
+        int logLength = GL20.glGetProgrami(program, GL20.GL_INFO_LOG_LENGTH);
 
-        int length = iVal.get();
-        if (length > 1) {
-            ByteBuffer infoLog = BufferUtils.createByteBuffer(length);
-            iVal.flip();
-            ARBShaderObjects.glGetInfoLogARB(obj, iVal, infoLog);
-            byte[] infoBytes = new byte[length];
-            infoLog.get(infoBytes);
-            String out = new String(infoBytes);
-            System.out.println("Info log:\n" + out);
+        if (logLength == 0) return true;
+
+        String log = GL20.glGetProgramInfoLog(program, logLength);
+        if (!log.trim().isEmpty()) {
+            System.out.println("Info log:\n" + log);
             return false;
         }
         return true;
@@ -101,9 +92,9 @@ public class GLUtils {
     }
 
     public static int glCreateDepthBuffer(int width, int height) {
-        int depthBuffer = EXTFramebufferObject.glGenRenderbuffersEXT();
-        EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, depthBuffer);
-        EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL11.GL_DEPTH_COMPONENT,
+        int depthBuffer = ARBFramebufferObject.glGenRenderbuffers();
+        ARBFramebufferObject.glBindRenderbuffer(ARBFramebufferObject.GL_RENDERBUFFER, depthBuffer);
+        ARBFramebufferObject.glRenderbufferStorage(ARBFramebufferObject.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT,
                 width, height);
         return depthBuffer;
     }

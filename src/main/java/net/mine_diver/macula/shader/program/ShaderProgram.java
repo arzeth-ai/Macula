@@ -9,14 +9,11 @@ import net.mine_diver.macula.shader.ShadowMap;
 import net.mine_diver.macula.shader.compiler.ShaderCompiler;
 import net.minecraft.block.BlockBase;
 import net.minecraft.item.ItemInstance;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.ARBVertexShader;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL11;
 
 import java.util.EnumMap;
 import java.util.Map;
-
-import static org.lwjgl.opengl.ARBShaderObjects.glDeleteObjectARB;
 
 public class ShaderProgram {
     public static final EnumMap<ShaderProgramType, Integer> shaderProgramId = new EnumMap<>(ShaderProgramType.class);
@@ -50,7 +47,7 @@ public class ShaderProgram {
     }
 
     private static int createShaderProgram(String vertShaderPath, String fragShaderPath) {
-        int programId = ARBShaderObjects.glCreateProgramObjectARB();
+        int programId = GL20.glCreateProgram();
 
         if (programId == NO_PROGRAM_ID) return NO_PROGRAM_ID;
 
@@ -58,15 +55,15 @@ public class ShaderProgram {
         int fragShaderId = ShaderCompiler.createFragShader(fragShaderPath);
 
         if (vertShaderId != NO_PROGRAM_ID || fragShaderId != NO_PROGRAM_ID) {
-            if (vertShaderId != NO_PROGRAM_ID) ARBShaderObjects.glAttachObjectARB(programId, vertShaderId);
-            if (fragShaderId != NO_PROGRAM_ID) ARBShaderObjects.glAttachObjectARB(programId, fragShaderId);
+            if (vertShaderId != NO_PROGRAM_ID) GL20.glAttachShader(programId, vertShaderId);
+            if (fragShaderId != NO_PROGRAM_ID) GL20.glAttachShader(programId, fragShaderId);
             if (ShaderCore.entityAttrib >= 0)
-                ARBVertexShader.glBindAttribLocationARB(programId, ShaderCore.entityAttrib, "mc_Entity");
-            ARBShaderObjects.glLinkProgramARB(programId);
-            ARBShaderObjects.glValidateProgramARB(programId);
+                GL20.glBindAttribLocation(programId, ShaderCore.entityAttrib, "mc_Entity");
+            GL20.glLinkProgram(programId);
+            GL20.glValidateProgram(programId);
             GLUtils.printLogInfo(programId);
         } else {
-            ARBShaderObjects.glDeleteObjectARB(programId);
+            GL20.glDeleteProgram(programId);
             return NO_PROGRAM_ID;
         }
 
@@ -78,12 +75,12 @@ public class ShaderProgram {
 
         if (ShadowMap.isShadowPass) {
             activeShaderProgram = ShaderProgramType.NONE;
-            ARBShaderObjects.glUseProgramObjectARB(shaderProgramId.get(ShaderProgramType.NONE));
+            GL20.glUseProgram(shaderProgramId.get(ShaderProgramType.NONE));
             return;
         }
 
         activeShaderProgram = shaderProgramType;
-        ARBShaderObjects.glUseProgramObjectARB(shaderProgramId.get(shaderProgramType));
+        GL20.glUseProgram(shaderProgramId.get(shaderProgramType));
 
         if (shaderProgramId.get(shaderProgramType) == NO_PROGRAM_ID) return;
 
@@ -163,7 +160,7 @@ public class ShaderProgram {
         for (Map.Entry<ShaderProgramType, Integer> shaderEntry : shaderProgramId.entrySet()) {
             int programId = shaderEntry.getValue();
             if (programId != NO_PROGRAM_ID) {
-                glDeleteObjectARB(programId);
+                GL20.glDeleteProgram(programId);
                 shaderEntry.setValue(NO_PROGRAM_ID);
             }
         }
