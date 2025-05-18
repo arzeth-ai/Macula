@@ -150,7 +150,7 @@ public class ShaderCore {
 
         GL20.glDrawBuffers(Framebuffer.defaultDrawBuffers);
 
-        bindTextures();
+        bindPostprocessingTextures();
         GLUtils.glDrawQuad();
 
         // final
@@ -161,7 +161,7 @@ public class ShaderCore {
 
         GLUtils.glClearBuffer(clearColor[0], clearColor[1], clearColor[2], 1f);
 
-        bindTextures();
+        bindPostprocessingTextures();
         GLUtils.glDrawQuad();
 
         GL11.glEnable(GL11.GL_BLEND);
@@ -172,7 +172,7 @@ public class ShaderCore {
 
     public static void beginTerrain() {
         ShaderProgram.useShaderProgram(ShaderProgramType.TERRAIN);
-        bindTerrainTextures();
+        bindEnvironmentTextures();
     }
 
     public static void endTerrain() {
@@ -181,7 +181,7 @@ public class ShaderCore {
 
     public static void beginWater() {
         ShaderProgram.useShaderProgram(ShaderProgramType.WATER);
-        bindTerrainTextures();
+        bindEnvironmentTextures();
     }
 
     public static void endWater() {
@@ -216,7 +216,7 @@ public class ShaderCore {
         ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
     }
 
-    private static void bindTextures() {
+    private static void bindPostprocessingTextures() {
         for (byte i = 0; i < Framebuffer.colorAttachments; i++) {
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + i);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, Framebuffer.defaultTextures.get(i));
@@ -232,12 +232,11 @@ public class ShaderCore {
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    private static void bindTerrainTextures() {
+    private static void bindEnvironmentTextures() {
         GL13.glActiveTexture(GL13.GL_TEXTURE2);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, MINECRAFT.textureManager.getTextureId("/terrain_nh.png"));
         GL13.glActiveTexture(GL13.GL_TEXTURE3);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, MINECRAFT.textureManager.getTextureId("/terrain_s.png"));
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
     }
-
 }
