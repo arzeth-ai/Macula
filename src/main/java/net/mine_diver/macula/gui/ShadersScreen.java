@@ -1,7 +1,7 @@
 package net.mine_diver.macula.gui;
 
-import net.mine_diver.macula.GLUtils;
-import net.mine_diver.macula.ShaderConfig;
+import net.mine_diver.macula.util.GLUtils;
+import net.mine_diver.macula.option.ShaderConfig;
 import net.mine_diver.macula.ShaderPack;
 import net.mine_diver.macula.option.ShaderOption;
 import net.minecraft.client.Minecraft;

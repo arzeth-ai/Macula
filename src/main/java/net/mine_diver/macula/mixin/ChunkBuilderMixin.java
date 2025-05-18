@@ -1,7 +1,7 @@
 package net.mine_diver.macula.mixin;
 
 import net.mine_diver.macula.ShaderPack;
-import net.mine_diver.macula.ShaderCore;
+import net.mine_diver.macula.shader.ShaderCore;
 import net.mine_diver.macula.util.TessellatorAccessor;
 import net.minecraft.block.BlockBase;
 import net.minecraft.class_66;

@@ -1,6 +1,6 @@
 package net.mine_diver.macula.mixin;
 
-import net.mine_diver.macula.GLUtils;
+import net.mine_diver.macula.util.GLUtils;
 import net.mine_diver.macula.ShaderPack;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import org.lwjgl.opengl.GL11;

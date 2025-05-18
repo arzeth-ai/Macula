@@ -1,4 +1,4 @@
-package net.mine_diver.macula;
+package net.mine_diver.macula.shader.uniform;
 
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.nio.FloatBuffer;
 
-public class MatrixBuffer {
+public class MatrixUniforms {
     private static final int MATRIX_SIZE = 16;
 
     private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(MATRIX_SIZE);

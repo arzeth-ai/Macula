@@ -1,5 +1,11 @@
-package net.mine_diver.macula;
+package net.mine_diver.macula.shader.compiler;
 
+import net.mine_diver.macula.shader.Framebuffer;
+import net.mine_diver.macula.util.GLUtils;
+import net.mine_diver.macula.option.ShaderConfig;
+import net.mine_diver.macula.shader.ShaderCore;
+import net.mine_diver.macula.ShaderPack;
+import net.mine_diver.macula.shader.ShadowMap;
 import org.lwjgl.opengl.ARBFragmentShader;
 import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.ARBVertexShader;
@@ -52,14 +58,14 @@ public class ShaderCompiler {
     }
 
     static void fragPattern(String line) {
-        if (ColorBuffer.colorAttachments < 5 && PATTERN_GAUX1.matcher(line).matches()) ColorBuffer.colorAttachments = 5;
-        else if (ColorBuffer.colorAttachments < 6 && PATTERN_GAUX2.matcher(line).matches())
-            ColorBuffer.colorAttachments = 6;
-        else if (ColorBuffer.colorAttachments < 7 && PATTERN_GAUX3.matcher(line).matches())
-            ColorBuffer.colorAttachments = 7;
-        else if (ColorBuffer.colorAttachments < 8 && PATTERN_SHADOW.matcher(line).matches()) {
+        if (Framebuffer.colorAttachments < 5 && PATTERN_GAUX1.matcher(line).matches()) Framebuffer.colorAttachments = 5;
+        else if (Framebuffer.colorAttachments < 6 && PATTERN_GAUX2.matcher(line).matches())
+            Framebuffer.colorAttachments = 6;
+        else if (Framebuffer.colorAttachments < 7 && PATTERN_GAUX3.matcher(line).matches())
+            Framebuffer.colorAttachments = 7;
+        else if (Framebuffer.colorAttachments < 8 && PATTERN_SHADOW.matcher(line).matches()) {
             ShadowMap.shadowEnabled = true;
-            ColorBuffer.colorAttachments = 8;
+            Framebuffer.colorAttachments = 8;
         } else if (PATTERN_SHADOWRES.matcher(line).matches()) {
             String[] parts = SPLIT_PATTERN.split(line, 4);
             ShadowMap.shadowResolution = Math.round(

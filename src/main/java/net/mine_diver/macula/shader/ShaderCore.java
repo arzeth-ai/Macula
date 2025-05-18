@@ -1,7 +1,12 @@
 // Code written by daxnitro.  Do what you want with it but give me some credit if you use it in whole or in part.
 
-package net.mine_diver.macula;
+package net.mine_diver.macula.shader;
 
+import net.mine_diver.macula.ShaderPack;
+import net.mine_diver.macula.option.ShaderConfig;
+import net.mine_diver.macula.shader.program.ShaderProgram;
+import net.mine_diver.macula.shader.program.ShaderProgramType;
+import net.mine_diver.macula.util.GLUtils;
 import net.mine_diver.macula.util.MinecraftInstance;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.BufferUtils;
@@ -18,6 +23,7 @@ public class ShaderCore {
 
     public static int renderWidth = 0;
     public static int renderHeight = 0;
+    public static float aspectRatio = 0;
 
     private static final float[] clearColor = new float[3];
 
@@ -41,20 +47,20 @@ public class ShaderCore {
 
         System.out.println("GL_MAX_DRAW_BUFFERS = " + maxDrawBuffers);
 
-        ColorBuffer.colorAttachments = 4;
+        Framebuffer.colorAttachments = 4;
 
         ShaderProgram.initializeShaders();
 
-        if (ColorBuffer.colorAttachments > maxDrawBuffers) System.out.println("Not enough draw buffers!");
+        if (Framebuffer.colorAttachments > maxDrawBuffers) System.out.println("Not enough draw buffers!");
 
         ShaderProgram.resolveFallbacks();
 
-        ColorBuffer.defaultDrawBuffers = BufferUtils.createIntBuffer(ColorBuffer.colorAttachments);
-        for (int i = 0; i < ColorBuffer.colorAttachments; ++i)
-            ColorBuffer.defaultDrawBuffers.put(i, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + i);
+        Framebuffer.defaultDrawBuffers = BufferUtils.createIntBuffer(Framebuffer.colorAttachments);
+        for (int i = 0; i < Framebuffer.colorAttachments; ++i)
+            Framebuffer.defaultDrawBuffers.put(i, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + i);
 
-        ColorBuffer.defaultTextures = BufferUtils.createIntBuffer(ColorBuffer.colorAttachments);
-        ColorBuffer.defaultRenderBuffers = BufferUtils.createIntBuffer(ColorBuffer.colorAttachments);
+        Framebuffer.defaultTextures = BufferUtils.createIntBuffer(Framebuffer.colorAttachments);
+        Framebuffer.defaultRenderBuffers = BufferUtils.createIntBuffer(Framebuffer.colorAttachments);
 
         resize();
         ShadowMap.initializeShadowMap();
@@ -71,7 +77,7 @@ public class ShaderCore {
             return;
         }
 
-        GL20.glDrawBuffers(ColorBuffer.defaultDrawBuffers);
+        GL20.glDrawBuffers(Framebuffer.defaultDrawBuffers);
         GLUtils.glClearBuffer(0f, 0f, 0f, 0f);
 
         GL20.glDrawBuffers(EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT);
@@ -80,14 +86,17 @@ public class ShaderCore {
         GL20.glDrawBuffers(EXTFramebufferObject.GL_COLOR_ATTACHMENT1_EXT);
         GLUtils.glClearBuffer(1f, 1f, 1f, 1f);
 
-        GL20.glDrawBuffers(ColorBuffer.defaultDrawBuffers);
+        GL20.glDrawBuffers(Framebuffer.defaultDrawBuffers);
     }
 
     private static void resize() {
         renderWidth = MINECRAFT.actualWidth;
         renderHeight = MINECRAFT.actualHeight;
-        ColorBuffer.setupRenderTextures();
-        ColorBuffer.setupFrameBuffer();
+
+        aspectRatio = (float) renderWidth / (float) renderHeight;
+
+        Framebuffer.setupRenderTextures();
+        Framebuffer.setupFrameBuffer();
     }
 
     public static void beginRender(Minecraft minecraft, float f, long l) {
@@ -118,7 +127,7 @@ public class ShaderCore {
         }
 
         EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                ColorBuffer.defaultFramebuffer);
+                Framebuffer.defaultFramebufferId);
 
         ShaderProgram.useShaderProgram(ShaderProgramType.TEXTURED);
     }
@@ -139,7 +148,7 @@ public class ShaderCore {
 
         ShaderProgram.useShaderProgram(ShaderProgramType.COMPOSITE);
 
-        GL20.glDrawBuffers(ColorBuffer.defaultDrawBuffers);
+        GL20.glDrawBuffers(Framebuffer.defaultDrawBuffers);
 
         bindTextures();
         GLUtils.glDrawQuad();
@@ -208,9 +217,9 @@ public class ShaderCore {
     }
 
     private static void bindTextures() {
-        for (byte i = 0; i < ColorBuffer.colorAttachments; i++) {
+        for (byte i = 0; i < Framebuffer.colorAttachments; i++) {
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + i);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, ColorBuffer.defaultTextures.get(i));
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, Framebuffer.defaultTextures.get(i));
         }
 
         if (ShadowMap.shadowEnabled) {

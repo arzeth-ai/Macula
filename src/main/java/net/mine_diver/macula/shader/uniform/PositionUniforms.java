@@ -1,9 +1,11 @@
-package net.mine_diver.macula;
+package net.mine_diver.macula.shader.uniform;
 
+import net.mine_diver.macula.shader.ShaderCore;
+import net.mine_diver.macula.shader.ShadowMap;
 import net.minecraft.entity.Living;
 import org.joml.Vector3f;
 
-public class PositionBuffer {
+public class PositionUniforms {
     public static final Vector3f sunPosition = new Vector3f();
 
     public static final Vector3f moonPosition = new Vector3f();
@@ -34,13 +36,13 @@ public class PositionBuffer {
         if (ShadowMap.isShadowPass) {
             ShadowMap.setupShadowViewport(alpha, currentPosition);
 
-            MatrixBuffer.updateShadowProjection();
-            MatrixBuffer.updateShadowModelView();
+            MatrixUniforms.updateShadowProjection();
+            MatrixUniforms.updateShadowModelView();
             return;
         }
 
-        MatrixBuffer.updateProjection();
-        MatrixBuffer.updateModelView();
+        MatrixUniforms.updateProjection();
+        MatrixUniforms.updateModelView();
 
         // Update previous camera
         previousCameraPosition.set(cameraPosition);
@@ -52,14 +54,14 @@ public class PositionBuffer {
     public static void updateCelestialPosition() {
         // This is called when the current matrix is the model view matrix based on the celestial angle
         // The sun is at (0, 100, 0); the moon at (0, -100, 0)
-        MatrixBuffer.updateModelViewCelestial();
+        MatrixUniforms.updateModelViewCelestial();
 
         // Equivalent to multiplying the matrix by (0, 100, 0, 0)
         final float SUN_HEIGHT = 100f;
         sunPosition.set(
-                MatrixBuffer.modelViewCelestial.m10() * SUN_HEIGHT,
-                MatrixBuffer.modelViewCelestial.m11() * SUN_HEIGHT,
-                MatrixBuffer.modelViewCelestial.m12() * SUN_HEIGHT
+                MatrixUniforms.modelViewCelestial.m10() * SUN_HEIGHT,
+                MatrixUniforms.modelViewCelestial.m11() * SUN_HEIGHT,
+                MatrixUniforms.modelViewCelestial.m12() * SUN_HEIGHT
         );
 
         // The moon is opposite the sun

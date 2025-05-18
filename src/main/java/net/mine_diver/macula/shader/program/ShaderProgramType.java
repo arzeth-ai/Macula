@@ -1,4 +1,4 @@
-package net.mine_diver.macula;
+package net.mine_diver.macula.shader.program;
 
 public enum ShaderProgramType {
     NONE("", null),

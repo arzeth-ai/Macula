@@ -1,5 +1,6 @@
-package net.mine_diver.macula;
+package net.mine_diver.macula.shader;
 
+import net.mine_diver.macula.util.GLUtils;
 import org.joml.Vector3f;
 
 import java.nio.ByteBuffer;
@@ -18,8 +19,8 @@ public class ShadowMap {
 
     public static boolean isShadowPass = false;
 
-    static int shadowFramebufferId = 0;
-    static int shadowDepthTextureId = 0;
+    public static int shadowFramebufferId = 0;
+    public static int shadowDepthTextureId = 0;
     private static int shadowDepthBufferId = 0;
 
     public static void setupShadowViewport(float f, Vector3f cameraPosition) {

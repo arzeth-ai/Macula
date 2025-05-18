@@ -1,5 +1,6 @@
-package net.mine_diver.macula;
+package net.mine_diver.macula.shader;
 
+import net.mine_diver.macula.util.GLUtils;
 import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
@@ -7,23 +8,26 @@ import org.lwjgl.opengl.GL11;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-public class ColorBuffer {
+public class Framebuffer {
     public static int colorAttachments = 0;
-    static IntBuffer defaultDrawBuffers = null;
-    static IntBuffer defaultTextures = null;
-    static IntBuffer defaultRenderBuffers = null;
-    static int defaultFramebuffer = 0;
-    public static final int DEPTH_ATTACHMENT_INDEX = 1;
-    static int defaultDepthBuffer = 0;
 
-    static void setupFrameBuffer() {
-        if (defaultFramebuffer != 0) {
-            EXTFramebufferObject.glDeleteFramebuffersEXT(defaultFramebuffer);
+    public static IntBuffer defaultDrawBuffers = null;
+    public static IntBuffer defaultTextures = null;
+    public static IntBuffer defaultRenderBuffers = null;
+
+    public static int defaultFramebufferId = 0;
+    private static int defaultDepthBufferId = 0;
+
+    private static final int DEPTH_ATTACHMENT_INDEX = 1;
+
+    public static void setupFrameBuffer() {
+        if (defaultFramebufferId != 0) {
+            EXTFramebufferObject.glDeleteFramebuffersEXT(defaultFramebufferId);
             EXTFramebufferObject.glDeleteRenderbuffersEXT(defaultRenderBuffers);
         }
 
-        defaultFramebuffer = EXTFramebufferObject.glGenFramebuffersEXT();
-        EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, defaultFramebuffer);
+        defaultFramebufferId = EXTFramebufferObject.glGenFramebuffersEXT();
+        EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, defaultFramebufferId);
 
         EXTFramebufferObject.glGenRenderbuffersEXT(defaultRenderBuffers);
 
@@ -46,20 +50,20 @@ public class ColorBuffer {
                     defaultTextures.get(i), 0);
         }
 
-        if (defaultDepthBuffer != 0)
-            EXTFramebufferObject.glDeleteRenderbuffersEXT(defaultDepthBuffer);
-        defaultDepthBuffer = GLUtils.glCreateDepthBuffer(ShaderCore.renderWidth, ShaderCore.renderHeight);
+        if (defaultDepthBufferId != 0)
+            EXTFramebufferObject.glDeleteRenderbuffersEXT(defaultDepthBufferId);
+        defaultDepthBufferId = GLUtils.glCreateDepthBuffer(ShaderCore.renderWidth, ShaderCore.renderHeight);
 
         EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
                 EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-                defaultDepthBuffer);
+                defaultDepthBufferId);
 
         int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
         if (status != EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT)
             System.err.println("Failed creating framebuffer! (Status " + status + ")");
     }
 
-    static void setupRenderTextures() {
+    public static void setupRenderTextures() {
         GL11.glDeleteTextures(defaultTextures);
         GL11.glGenTextures(defaultTextures);
 
