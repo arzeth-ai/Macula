@@ -108,8 +108,8 @@ public class ShaderProgram {
             case FINAL:
                 UniformUtils.setProgramUniform1i(programId, Uniform.GCOLOR, 0);
                 UniformUtils.setProgramUniform1i(programId, Uniform.GDEPTH, 1);
-                //UniformUtils.setProgramUniform1i(programId, Uniform.GNORMAL, 2);
-                UniformUtils.setProgramUniform1i(programId, Uniform.COMPOSITE, 2);
+                UniformUtils.setProgramUniform1i(programId, Uniform.GNORMAL, 2);
+                UniformUtils.setProgramUniform1i(programId, Uniform.COMPOSITE, 3);
                 UniformUtils.setProgramUniform1i(programId, Uniform.GAUX1, 4);
                 UniformUtils.setProgramUniform1i(programId, Uniform.GAUX2, 5);
                 UniformUtils.setProgramUniform1i(programId, Uniform.GAUX3, 6);
