@@ -18,11 +18,20 @@ public class UniformUtils {
 
     private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(MATRIX_SIZE);
 
-    static int getUniformLocation(int programId, Uniform uniform) {
+    public static void cacheUniformLocations(int programId) {
+        for (Uniform uniform : Uniform.values()) {
+            int location = GL20.glGetUniformLocation(programId, uniform.getName());
+            if (location != -1) {
+                int key = (programId << 16) | uniform.ordinal();
+                uniformLocationCache.put(key, location);
+            }
+        }
+    }
+
+    private static int getUniformLocation(int programId, Uniform uniform) {
         int key = (programId << 16) | uniform.ordinal();
 
-        return uniformLocationCache.computeIfAbsent(key,
-                k -> GL20.glGetUniformLocation(programId, uniform.getName()));
+        return uniformLocationCache.getOrDefault(key, -1);
     }
 
     public static void setProgramUniform1i(int programId, Uniform uniform, int n) {
