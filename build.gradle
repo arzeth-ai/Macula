@@ -1,11 +1,14 @@
 plugins {
-	id 'babric-loom' version '1.1-SNAPSHOT'
+	id 'babric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
 }
 
-sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
 
-archivesBaseName = project.archives_base_name
+base.archivesName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
@@ -33,8 +36,8 @@ repositories {
 	}
 	// Used for a StationAPI dependency.
 	maven {
-		name = 'Froge'
-		url 'https://maven.minecraftforge.net/'
+		name = 'Forge'
+		url = 'https://maven.minecraftforge.net/'
 	}
 	// Used for projects that do not have a maven repository, but do have a GitHub repository with working build scripts.
 	maven {
@@ -64,6 +67,8 @@ dependencies {
 	implementation "org.slf4j:slf4j-api:1.8.0-beta4"
 	implementation "org.apache.logging.log4j:log4j-slf4j18-impl:2.16.0"
 	implementation "org.joml:joml:1.10.8"
+
+	include "org.joml:joml:1.10.8"
 }
 
 processResources {
