@@ -17,7 +17,7 @@ public class WorldRendererMixin {
             method = "renderSky(F)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/level/Level;method_286(F)F",
+                    target = "Lnet/minecraft/world/World;method_286(F)F",
                     shift = At.Shift.AFTER
             )
     )

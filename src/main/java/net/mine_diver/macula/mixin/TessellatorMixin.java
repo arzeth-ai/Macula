@@ -3,8 +3,8 @@ package net.mine_diver.macula.mixin;
 import net.mine_diver.macula.ShaderPack;
 import net.mine_diver.macula.shader.ShaderCore;
 import net.mine_diver.macula.util.TessellatorAccessor;
-import net.minecraft.class_214;
 import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.util.GlAllocationUtils;
 import org.lwjgl.opengl.ARBVertexProgram;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,17 +18,17 @@ import java.nio.ShortBuffer;
 
 @Mixin(Tessellator.class)
 public class TessellatorMixin implements TessellatorAccessor {
-    @Shadow private int drawingMode;
+    @Shadow private int mode;
 
     @Shadow private static boolean useTriangles;
 
-    @Shadow private int vertexAmount;
+    @Shadow private int addedVertexCount;
 
     @Shadow private boolean hasNormals;
 
-    @Shadow private int[] bufferArray;
+    @Shadow private int[] buffer;
 
-    @Shadow private int field_2068;
+    @Shadow private int bufferPosition;
 
     @Inject(
             method = "<init>(I)V",
@@ -36,7 +36,7 @@ public class TessellatorMixin implements TessellatorAccessor {
     )
     private void onCor(int var1, CallbackInfo ci) {
         shadersData = new short[] {-1, 0};
-        shadersBuffer = class_214.method_744(var1 / 8 * 4);
+        shadersBuffer = GlAllocationUtils.allocateByteBuffer(var1 / 8 * 4);
         shadersShortBuffer = shadersBuffer.asShortBuffer();
     }
 
@@ -70,7 +70,7 @@ public class TessellatorMixin implements TessellatorAccessor {
     }
 
     @Inject(
-            method = "clear()V",
+            method = "reset()V",
             at = @At(value = "RETURN")
     )
     private void onReset(CallbackInfo ci) {
@@ -79,15 +79,15 @@ public class TessellatorMixin implements TessellatorAccessor {
     }
 
     @Inject(
-            method = "addVertex(DDD)V",
+            method = "vertex(DDD)V",
             at = @At(value = "HEAD")
     )
     private void onAddVertex(CallbackInfo ci) {
         if (!ShaderPack.shaderPackLoaded) return;
-        if (drawingMode == 7 && useTriangles && (vertexAmount + 1) % 4 == 0 && hasNormals) {
-            bufferArray[field_2068 + 6] = bufferArray[(field_2068 - 24) + 6];
+        if (mode == 7 && useTriangles && (addedVertexCount + 1) % 4 == 0 && hasNormals) {
+            buffer[bufferPosition + 6] = buffer[(bufferPosition - 24) + 6];
             shadersBuffer.putShort(shadersData[0]).putShort(shadersData[1]);
-            bufferArray[field_2068 + 8 + 6] = bufferArray[(field_2068 + 8 - 16) + 6];
+            buffer[bufferPosition + 8 + 6] = buffer[(bufferPosition + 8 - 16) + 6];
             shadersBuffer.putShort(shadersData[0]).putShort(shadersData[1]);
         }
         shadersBuffer.putShort(shadersData[0]).putShort(shadersData[1]);

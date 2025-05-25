@@ -90,8 +90,8 @@ public class ShaderCore {
     }
 
     private static void resize() {
-        renderWidth = MINECRAFT.actualWidth;
-        renderHeight = MINECRAFT.actualHeight;
+        renderWidth = MINECRAFT.displayWidth;
+        renderHeight = MINECRAFT.displayHeight;
 
         aspectRatio = (float) renderWidth / (float) renderHeight;
 
@@ -100,13 +100,13 @@ public class ShaderCore {
     }
 
     public static void beginRender(Minecraft minecraft, float f, long l) {
-        rainStrength = minecraft.level.getRainGradient(f);
+        rainStrength = minecraft.world.getRainGradient(f);
 
         if (ShadowMap.isShadowPass) return;
 
         if (!isInitialized) init();
         if (!ShaderPack.shaderPackLoaded) return;
-        if (MINECRAFT.actualWidth != renderWidth || MINECRAFT.actualHeight != renderHeight)
+        if (MINECRAFT.displayWidth != renderWidth || MINECRAFT.displayHeight != renderHeight)
             resize();
 
         if (ShadowMap.shadowEnabled) {

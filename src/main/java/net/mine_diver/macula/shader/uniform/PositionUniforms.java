@@ -2,7 +2,7 @@ package net.mine_diver.macula.shader.uniform;
 
 import net.mine_diver.macula.shader.ShaderCore;
 import net.mine_diver.macula.shader.ShadowMap;
-import net.minecraft.entity.Living;
+import net.minecraft.entity.LivingEntity;
 import org.joml.Vector3f;
 
 public class PositionUniforms {
@@ -17,7 +17,7 @@ public class PositionUniforms {
     private static final Vector3f tempRender = new Vector3f();
 
     public static void updateCamera(float alpha) {
-        Living viewEntity = ShaderCore.MINECRAFT.viewEntity;
+        LivingEntity viewEntity = ShaderCore.MINECRAFT.viewEntity;
 
         tempPrevRender.set(
                 (float) viewEntity.prevRenderX,

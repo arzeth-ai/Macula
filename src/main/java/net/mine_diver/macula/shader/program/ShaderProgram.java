@@ -5,10 +5,10 @@ import net.mine_diver.macula.shader.uniform.MatrixUniforms;
 import net.mine_diver.macula.shader.uniform.PositionUniforms;
 import net.mine_diver.macula.shader.ShaderCore;
 import net.mine_diver.macula.util.UniformUtils;
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
 import net.mine_diver.macula.shader.ShadowMap;
 import net.mine_diver.macula.shader.compiler.ShaderCompiler;
-import net.minecraft.block.BlockBase;
-import net.minecraft.item.ItemInstance;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL11;
 
@@ -131,15 +131,15 @@ public class ShaderProgram {
                 break;
         }
 
-        ItemInstance stack = ShaderCore.MINECRAFT.player.inventory.getHeldItem();
+        ItemStack stack = ShaderCore.MINECRAFT.player.inventory.getSelectedItem();
         UniformUtils.setProgramUniform1i(programId, Uniform.HELD_ITEM_ID, stack == null ? -1 : stack.itemId);
         UniformUtils.setProgramUniform1i(programId, Uniform.HELD_BLOCK_LIGHT_VALUE,
-                stack == null || stack.itemId >= BlockBase.BY_ID.length ? 0 : BlockBase.EMITTANCE[stack.itemId]);
+                stack == null || stack.itemId >= Block.BLOCKS.length ? 0 : Block.BLOCKS_LIGHT_LUMINANCE[stack.itemId]);
 
         UniformUtils.setProgramUniform1i(programId, Uniform.FOG_MODE, ShaderCore.fogEnabled ? GL11.glGetInteger(GL11.GL_FOG_MODE) : 0);
         UniformUtils.setProgramUniform1f(programId, Uniform.RAIN_STRENGTH, ShaderCore.rainStrength);
 
-        UniformUtils.setProgramUniform1i(programId, Uniform.WORLD_TIME, (int) (ShaderCore.MINECRAFT.level.getLevelTime() % 24000));
+        UniformUtils.setProgramUniform1i(programId, Uniform.WORLD_TIME, (int) (ShaderCore.MINECRAFT.world.getTime() % 24000));
 
         UniformUtils.setProgramUniform1f(programId, Uniform.ASPECT_RATIO, ShaderCore.aspectRatio);
         UniformUtils.setProgramUniform1f(programId, Uniform.VIEW_WIDTH, (float) ShaderCore.renderWidth);

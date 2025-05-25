@@ -1,11 +1,11 @@
 package net.mine_diver.macula.mixin;
 
-import net.minecraft.client.gui.widgets.ScrollableBase;
+import net.minecraft.client.gui.widget.EntryListWidget;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ScrollableBase.class)
+@Mixin(EntryListWidget.class)
 public interface ScrollableBaseAccessor {
-    @Accessor("x")
+    @Accessor("width")
     int macula_getWidth();
 }

@@ -5,9 +5,9 @@ import net.mine_diver.macula.option.ShaderConfig;
 import net.mine_diver.macula.ShaderPack;
 import net.mine_diver.macula.option.ShaderOption;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.ScreenBase;
-import net.minecraft.client.gui.widgets.Button;
-import net.minecraft.client.render.TextRenderer;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.resource.language.I18n;
 import org.lwjgl.input.Keyboard;
 
@@ -15,7 +15,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
-public class ShadersScreen extends ScreenBase {
+public class ShadersScreen extends Screen {
     private static final int
             SHADERS_FOLDER_BUTTON_ID = "macula:shaders_folder".hashCode(),
             DONE_BUTTON_ID = "macula:done".hashCode();
@@ -68,12 +68,12 @@ public class ShadersScreen extends ScreenBase {
         return toStringValue(val, QUALITY_MULTIPLIERS, QUALITY_MULTIPLIER_NAMES);
     }
 
-    private final ScreenBase parent;
+    private final Screen parent;
     private int updateTimer = -1;
     private ScrollableShaders shaderList;
     private boolean rightClick;
 
-    public ShadersScreen(ScreenBase parent) {
+    public ShadersScreen(Screen parent) {
         this.parent = parent;
     }
 
@@ -93,15 +93,15 @@ public class ShadersScreen extends ScreenBase {
         final int xFolder = shaderListWidth / 4 - btnFolderWidth / 2;
         final int yFolder = height - 25;
         //noinspection unchecked
-        buttons.add(new Button(SHADERS_FOLDER_BUTTON_ID, xFolder, yFolder, btnFolderWidth - 22 + 1, btnHeight, "Shaders Folder"));
+        buttons.add(new ButtonWidget(SHADERS_FOLDER_BUTTON_ID, xFolder, yFolder, btnFolderWidth - 22 + 1, btnHeight, "Shaders Folder"));
         //noinspection unchecked
-        buttons.add(new Button(DONE_BUTTON_ID, shaderListWidth / 4 * 3 - btnFolderWidth / 2, height - 25, btnFolderWidth, btnHeight, I18n.translate("gui.done")));
+        buttons.add(new ButtonWidget(DONE_BUTTON_ID, shaderListWidth / 4 * 3 - btnFolderWidth / 2, height - 25, btnFolderWidth, btnHeight, I18n.getTranslation("gui.done")));
         updateButtons();
     }
 
     public void updateButtons() {
         //noinspection unchecked
-        for (Button button : (List<Button>) buttons)
+        for (ButtonWidget button : (List<ButtonWidget>) buttons)
             if (button.id != SHADERS_FOLDER_BUTTON_ID && button.id != DONE_BUTTON_ID)
                 button.active = ShaderPack.shaderPackLoaded;
     }
@@ -117,7 +117,7 @@ public class ShadersScreen extends ScreenBase {
     }
 
     @Override
-    protected void buttonClicked(Button button) {
+    protected void buttonClicked(ButtonWidget button) {
         super.buttonClicked(button);
         if (!button.active) return;
         if (button instanceof ShaderOptionButton sob) {
@@ -138,7 +138,7 @@ public class ShadersScreen extends ScreenBase {
         }
         if (button.id == DONE_BUTTON_ID) {
             ShaderConfig.storeConfig();
-            minecraft.openScreen(parent);
+            minecraft.setScreen(parent);
         }
     }
 
@@ -150,12 +150,12 @@ public class ShadersScreen extends ScreenBase {
             shaderList.updateList();
             updateTimer += 20;
         }
-        drawTextWithShadowCentred(textManager, "Shaders", width / 2, 15, 0xffffff);
+        drawCenteredTextWithShadow(textRenderer, "Shaders", width / 2, 15, 0xffffff);
         String debug = "OpenGL: " + GLUtils.glVersionString + ", " + GLUtils.glVendorString + ", " + GLUtils.glRendererString;
-        int debugWidth = textManager.getTextWidth(debug);
+        int debugWidth = textRenderer.getWidth(debug);
         if (debugWidth < width - 5)
-            drawTextWithShadowCentred(textManager, debug, width / 2, height - 40, 0x808080);
-        else drawTextWithShadow(textManager, debug, 5, height - 40, 0x808080);
+            drawCenteredTextWithShadow(textRenderer, debug, width / 2, height - 40, 0x808080);
+        else drawTextWithShadow(textRenderer, debug, 5, height - 40, 0x808080);
         super.render(i, j, f);
     }
 
@@ -170,6 +170,6 @@ public class ShadersScreen extends ScreenBase {
     }
 
     TextRenderer getTextRenderer() {
-        return textManager;
+        return textRenderer;
     }
 }

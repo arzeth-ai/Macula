@@ -35,7 +35,7 @@ public class ShadowMap {
         glTranslatef(0f, 0f, -100f);
         glRotatef(90f, 0f, 0f, -1f);
 
-        float angle = ShaderCore.MINECRAFT.level.method_198(f) * 360f;
+        float angle = ShaderCore.MINECRAFT.world.method_198(f) * 360f;
         if (angle < 90f || angle > 270f)
             glRotatef(angle - 90f, -1f, 0f, 0f); // Daytime
         else
